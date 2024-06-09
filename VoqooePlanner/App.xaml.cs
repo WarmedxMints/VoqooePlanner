@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
+using ODUtils.Dialogs;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using VoqooePlanner.DbContexts;
@@ -79,6 +81,17 @@ namespace VoqooePlanner
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            Process proc = Process.GetCurrentProcess();
+            int count = Process.GetProcesses().Where(p =>
+                p.ProcessName == proc.ProcessName).Count();
+
+            if (count > 1)
+            {
+                ODMessageBox.ShowNoOwner("Voqooe Planner", "Voqooe Planner is already running\nApplication will now close");
+                App.Current.Shutdown();
+                return;
+            }
+
             if (System.IO.Directory.Exists(BaseDirectory) == false)
             {
                 System.IO.Directory.CreateDirectory(BaseDirectory);
