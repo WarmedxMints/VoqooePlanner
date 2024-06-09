@@ -11,7 +11,7 @@ namespace VoqooePlanner.ViewModels
         private readonly VoqooeSystem system = system;
 
         public VoqooeSystem System => system;
-        public System.Windows.Media.Brush Scoopable
+        public Brush Scoopable
         {
             get
             {

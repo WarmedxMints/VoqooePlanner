@@ -52,7 +52,6 @@ namespace VoqooePlanner
                     //VMs
                     services.AddTransient(s => CreateVoqooeLisViewModel(s));
                     services.AddTransient(s => CreateSettingViewModel(s));
-
                     services.AddSingleton<LoaderViewModel>();
                     services.AddSingleton<MainViewModel>();
                     services.AddSingleton<NavigationViewModel>();
@@ -60,7 +59,9 @@ namespace VoqooePlanner
                     services.AddSingleton<Func<VoqooeListViewModel>>((s) => () => CreateVoqooeLisViewModel(s));
                     services.AddSingleton<NavigationService<VoqooeListViewModel>>();
                     services.AddSingleton<Func<SettingsViewModel>>((s) => () => CreateSettingViewModel(s));
+                    //Services
                     services.AddSingleton<NavigationService<SettingsViewModel>>();
+                    services.AddSingleton<SystemsUpdateService>();
                     //Stores
                     services.AddSingleton<VoqooeDataStore>();
                     services.AddSingleton<NavigationStore>();

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using VoqooePlanner.Models;
+using VoqooePlanner.Services;
 using VoqooePlanner.Stores;
 
 namespace VoqooePlanner.ViewModels
@@ -13,6 +14,7 @@ namespace VoqooePlanner.ViewModels
         private readonly VoqooeDataStore voqooeDataStore;
         private readonly NavigationViewModel navigationViewModel;
         private readonly SettingsStore settingsStore;
+        private readonly SystemsUpdateService systemsUpdateService;
 
         public string Title { get; }
         public SettingsStore SettingsStore { get => settingsStore; }
@@ -48,16 +50,32 @@ namespace VoqooePlanner.ViewModels
             }
         }
 
+        private string updateText = string.Empty;
+        public string UpdateText
+        {
+            get => updateText;
+            set
+            {
+                updateText = value;
+                OnPropertyChanged(nameof(UpdateText));
+            }
+        }
+
         public ICommand NavigateToVoqooeList { get; }// => navigationViewModel.VoqooeListCommand;
         public ICommand NavigateToSettingView { get; }//=> navigationViewModel.SettingViewCommand;
         public ICommand ResetWindowPositionCommand { get; }
-
-        public MainViewModel(NavigationStore navStore, VoqooeDataStore voqooeDataStore, NavigationViewModel navigationViewModel, SettingsStore settingsStore)
+        public EventHandler<bool>? OnSystemsUpdateEvent;
+        public MainViewModel(NavigationStore navStore,
+                             VoqooeDataStore voqooeDataStore,
+                             NavigationViewModel navigationViewModel,
+                             SettingsStore settingsStore,
+                             SystemsUpdateService systemsUpdateService)
         {
             this.navStore = navStore;
             this.voqooeDataStore = voqooeDataStore;
             this.navigationViewModel = navigationViewModel;
             this.settingsStore = settingsStore;
+            this.systemsUpdateService = systemsUpdateService;
             navStore.CurrentViewModelChanged += OnCurrentViewModelChaned;
             voqooeDataStore.OnCurrentSystemChanged += OnCurrentSystemChanged;
             voqooeDataStore.OnCurrentCommanderChanged += OnCommanderChanged;
@@ -69,8 +87,36 @@ namespace VoqooePlanner.ViewModels
             ResetWindowPositionCommand = new RelayCommand(OnResetWindowPos);
 
             Title = $"Voqooe Planner v{App.AppVersion.Major}.{App.AppVersion.Minor}";
+
+            systemsUpdateService.SetUpdateTimer(OnSystemsUpdate);
         }
 
+        private void OnSystemsUpdate(string obj)
+        {
+            if (string.IsNullOrEmpty(obj)) return;
+
+            if(string.Equals(obj, "AutoUpdateStart"))
+            {
+                OnSystemsUpdateEvent?.Invoke(this, true);
+                return;
+            }
+
+            if(string.Equals(obj, "AutoUpdateEnd"))
+            {
+                OnSystemsUpdateEvent?.Invoke(this, false);
+                return;
+            }
+
+            SetUpdateText(obj);
+        }
+
+        private void SetUpdateText(string text)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                UpdateText = text;
+            });
+        }
         private void OnNavigateToSettings(object? obj)
         {
             navigationViewModel.SettingViewCommand.Execute(null);

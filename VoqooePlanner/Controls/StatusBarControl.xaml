@@ -43,6 +43,12 @@
                    HorizontalAlignment="Left"
                    VerticalAlignment="Center" />
 
+        <TextBlock Text="{Binding UpdateText}"
+                   x:Name="UpdateTextBlock"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Grid.Column="2" />
+        
         <TextBlock Text="CMDR :"
                    Margin="5,0"
                    Grid.Column="3"

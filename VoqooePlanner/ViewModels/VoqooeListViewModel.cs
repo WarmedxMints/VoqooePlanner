@@ -154,7 +154,7 @@ namespace VoqooePlanner.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                ReadingFileText = $"Reading File {e}...";
+                ReadingFileText = $"Reading {e}...";
             });
         }
 
