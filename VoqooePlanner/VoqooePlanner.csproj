@@ -1,0 +1,83 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<Configurations>Debug;Release;Portable;Install</Configurations>
+		<ApplicationIcon>Resources\CLB_Official.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="Resources\CLB_Official.ico" />
+	  <None Remove="Resources\CLB_Official.png" />
+	  <None Remove="Resources\CLB_Official_transparent.png" />
+	  <None Remove="Resources\good timing bd.otf" />
+	  <None Remove="Resources\Keyboard_Black_Ctrl.png" />
+	  <None Remove="Resources\Keyboard_Black_Del.png" />
+	  <None Remove="Resources\Keyboard_Black_End.png" />
+	  <None Remove="Resources\Keyboard_Black_Home.png" />
+	  <None Remove="Resources\Keyboard_Black_Insert.png" />
+	  <None Remove="Resources\Keyboard_Black_Page_Down.png" />
+	  <None Remove="Resources\Keyboard_Black_Page_Up.png" />
+	  <None Remove="Resources\Keyboard_Black_R.png" />
+	  <None Remove="Resources\Map-galaxy-map.png" />
+	  <None Remove="Resources\normal_map.png" />
+	  <None Remove="Resources\orrery_map.png" />
+	  <None Remove="Resources\paypal-donate-button.png" />
+	  <None Remove="Resources\Selection-galaxy-map.png" />
+	  <None Remove="Resources\settings.png" />
+	  <None Remove="Resources\TransformaScript-Medium.ttf" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Resources\CLB_Official.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+		<PackageReference Include="NLog" Version="5.3.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\ODUtils\ODUtils.csproj" />
+		<ProjectReference Include="F:\GitHub\EliteJournalReader\EliteJournalReader\EliteJournalReader.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Resources\CLB_Official.ico" />
+	  <Resource Include="Resources\CLB_Official.png" />
+	  <Resource Include="Resources\CLB_Official_transparent.png" />
+	  <Resource Include="Resources\good timing bd.otf" />
+	  <Resource Include="Resources\Keyboard_Black_Ctrl.png" />
+	  <Resource Include="Resources\Keyboard_Black_Del.png" />
+	  <Resource Include="Resources\Keyboard_Black_End.png" />
+	  <Resource Include="Resources\Keyboard_Black_Home.png" />
+	  <Resource Include="Resources\Keyboard_Black_Insert.png" />
+	  <Resource Include="Resources\Keyboard_Black_Page_Down.png" />
+	  <Resource Include="Resources\Keyboard_Black_Page_Up.png" />
+	  <Resource Include="Resources\Keyboard_Black_R.png" />
+	  <Resource Include="Resources\Map-galaxy-map.png" />
+	  <Resource Include="Resources\normal_map.png" />
+	  <Resource Include="Resources\orrery_map.png" />
+	  <Resource Include="Resources\paypal-donate-button.png" />
+	  <Resource Include="Resources\Selection-galaxy-map.png" />
+	  <Resource Include="Resources\settings.png" />
+	  <Resource Include="Resources\TransformaScript-Medium.ttf" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Helpers\" />
+	</ItemGroup>
+
+</Project>

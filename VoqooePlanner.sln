@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VoqooePlanner", "VoqooePlanner\VoqooePlanner.csproj", "{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EliteJournalReader", "F:\GitHub\EliteJournalReader\EliteJournalReader\EliteJournalReader.csproj", "{9AD5E861-3F10-4CF2-A310-D0ED8182D939}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODUtils", "..\ODUtils\ODUtils.csproj", "{5B94044A-82F6-48D1-B907-6C1116E75334}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Install|Any CPU = Install|Any CPU
+		Portable|Any CPU = Portable|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Install|Any CPU.ActiveCfg = Install|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Install|Any CPU.Build.0 = Install|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Portable|Any CPU.ActiveCfg = Portable|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Portable|Any CPU.Build.0 = Portable|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D515610-6CF4-46F4-B5CF-621EF5AE12D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Install|Any CPU.ActiveCfg = Install|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Install|Any CPU.Build.0 = Install|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Portable|Any CPU.ActiveCfg = Portable|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Portable|Any CPU.Build.0 = Portable|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AD5E861-3F10-4CF2-A310-D0ED8182D939}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Install|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Install|Any CPU.Build.0 = Debug|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Portable|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Portable|Any CPU.Build.0 = Debug|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B94044A-82F6-48D1-B907-6C1116E75334}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {17882D8C-640E-476E-9832-C694475950A1}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,280 @@
+﻿<UserControl x:Class="VoqooePlanner.Controls.RouteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:VoqooePlanner.Controls"
+             Focusable="True"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vmodels:VoqooeListViewModel}"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+    <UserControl.InputBindings>
+        <KeyBinding Key="Home"
+                    Command="{Binding MapUp}" />
+        <KeyBinding Key="End"
+                    Command="{Binding MapDown}" />
+        <KeyBinding Key="Delete"
+                    Command="{Binding MapLeft}" />
+        <KeyBinding Key="PageDown"
+                    Command="{Binding MapRight}" />
+        <KeyBinding Key="Insert"
+                    Command="{Binding ZoomMapOut}" />
+        <KeyBinding Key="PageUp"
+                    Command="{Binding ZoomMapIn}" />
+    </UserControl.InputBindings>
+    <UserControl.Resources>
+        <System:Boolean x:Key="FalseValue">False</System:Boolean>
+        <System:Boolean x:Key="TrueValue">True</System:Boolean>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Route"
+                  Width="Auto"
+                  HorizontalAlignment="Left"
+                  BorderThickness="0.5"
+                  Padding="10,5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="220" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="34" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Current System"
+                           Margin="0,0,20,0" />
+                <TextBlock Text="Next System"
+                           Grid.Row="1" />
+                <TextBlock Text="Jump Distance"
+                           Grid.Row="2" />
+                <TextBlock Text="Route Distance"
+                           Grid.Row="3" />
+
+                <TextBlock Text="{Binding SelectedItem.PrevSystemName}"
+                           Grid.Column="1" />
+                <TextBlock Text="{Binding SelectedItem.Name}"
+                           Grid.Column="1"
+                           Grid.Row="1" />
+                <TextBlock Text="{Binding SelectedItem.JumpDistance}"
+                           Grid.Column="1"
+                           Grid.Row="2" />
+                <TextBlock Text="{Binding Distance}"
+                           Grid.Column="1"
+                           Grid.Row="3" />
+
+                <Button FontFamily="Segoe MDL2 Assets"
+                        Content="&#xE77F;"
+                        Grid.Column="3"
+                        Height="20"
+                        Margin="0,5"
+                        FontSize="14"
+                        Foreground="Azure"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Command="{Binding CopyStringToClipboard}"
+                        CommandParameter="{Binding SelectedItem.PrevSystemName}"
+                        ToolTip="Copy current system to clipboard" />
+                <Button FontFamily="Segoe MDL2 Assets"
+                        Content="&#xE77F;"
+                        Grid.Column="3"
+                        Grid.Row="1"
+                        Foreground="Azure"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Height="20"
+                        Margin="0,5"
+                        FontSize="14"
+                        Command="{Binding CopyStringToClipboard}"
+                        CommandParameter="{Binding SelectedItem.Name}"
+                        ToolTip="Copy next system to clipboard" />
+
+                <Grid Grid.Row="0"
+                      Grid.Column="5"
+                      Grid.RowSpan="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="30" />
+                        <RowDefinition />
+                        <RowDefinition Height="55" />
+                    </Grid.RowDefinitions>
+
+                    <CheckBox IsChecked="{Binding AutoSelectNextSystem}"
+                              Content="Auto Select Next System in Route"
+                              Grid.ColumnSpan="3"
+                              Margin="5,0,0,0"
+                              HorizontalAlignment="Left"
+                              Style="{DynamicResource CheckBoxStyle}" />
+
+                    <CheckBox IsChecked="{Binding AutoCopyNextSystem}"
+                              Content="Auto Copy Next System to Clipboard"
+                              Grid.ColumnSpan="3"
+                              Grid.Row="1"
+                              Margin="5,0,0,0"
+                              HorizontalAlignment="Left"
+                              Style="{DynamicResource CheckBoxStyle}" />
+                    <Button Grid.Row="3"
+                            Grid.Column="0"
+                            Height="35"
+                            Width="100"
+                            FontSize="16"
+                            Margin="5,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeSelectedItem}"
+                            CommandParameter="{StaticResource TrueValue}"
+                            Content="Prev System" />
+
+                    <Button Grid.Row="3"
+                            Grid.Column="1"
+                            FontSize="16"
+                            Height="35"
+                            Width="100"
+                            Margin="5,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeSelectedItem}"
+                            CommandParameter="{StaticResource FalseValue}"
+                            Content="Next System" />
+
+
+                    <Button Content="Generate Route"
+                            Height="35"
+                            Width="125"
+                            Margin="5,0"
+                            HorizontalAlignment="Left"
+                            Grid.Row="3"
+                            Grid.Column="2"
+                            FontSize="16"
+                            Command="{Binding GenerateRoute}" />
+                </Grid>
+            </Grid>
+        </GroupBox>
+        <Border Background="Black"
+                CornerRadius="10"
+                SnapsToDevicePixels="True"
+                Grid.Row="3"
+                Grid.ColumnSpan="3"
+                BorderThickness="2"
+                BorderBrush="{StaticResource PrimaryControlBorder}">
+            <Viewport3D x:Name="mapView"
+                        Camera="{Binding PerspectiveCamera}"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Grid.Column="3"
+                        Grid.RowSpan="4">
+                <ModelVisual3D Content="{Binding ModelGroup}"
+                               x:Name="vPort" />
+            </Viewport3D>
+        </Border>
+
+        <Grid Grid.Row="2"
+              Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock FontSize="18"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Left"
+                       Margin="5,0,0,0"
+                       x:Name="ClipboardText" />
+            
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Grid.Column="3">
+                <RepeatButton FontFamily="Segoe MDL2 Assets"
+                              Content="&#xE71F;"
+                              Height="30"
+                              Margin="5,0"
+                              Width="30"
+                              Delay="500"
+                              Interval="10"
+                              FontSize="18"
+                              ToolTip="Zoom Out - Insert Key"
+                              x:Name="ZoomOutBtn"
+                              Command="{Binding ZoomMapOut}" />
+
+                <RepeatButton FontFamily="Segoe MDL2 Assets"
+                              Content="&#xE71E;"
+                              Height="30"
+                              Margin="5,0,35,0"
+                              Width="30"
+                              Delay="500"
+                              Interval="10"
+                              FontSize="18"
+                              ToolTip="Zoom In - Page Up Key"
+                              x:Name="ZoomBtn"
+                              Command="{Binding ZoomMapIn}" />
+
+                <RepeatButton FontFamily="Segoe MDL2 Assets"
+                              Content="&#xE96F;"
+                              Height="30"
+                              Margin="5,0"
+                              Width="30"
+                              FontSize="18"
+                              Delay="500"
+                              Interval="40"
+                              ToolTip="Rotate Left - Delete Key"
+                              x:Name="MapLeftBtn"
+                              Command="{Binding MapLeft}" />
+                <RepeatButton FontFamily="Segoe MDL2 Assets"
+                              Content="&#xE970;"
+                              Height="30"
+                              Margin="5,0"
+                              Width="30"
+                              Delay="500"
+                              Interval="40"
+                              FontSize="18"
+                              ToolTip="Rotate Right - Page Down Key"
+                              x:Name="MapRightBtn"
+                              Command="{Binding MapRight}" />
+
+                <RepeatButton FontFamily="Segoe MDL2 Assets"
+                              Content="&#xE96E;"
+                              Height="30"
+                              Margin="35,0,5,0"
+                              Width="30"
+                              Delay="500"
+                              Interval="40"
+                              FontSize="18"
+                              ToolTip="Rotate Down - End Key"
+                              x:Name="MapUpBtn"
+                              Command="{Binding MapDown}" />
+                <RepeatButton FontFamily="Segoe MDL2 Assets"
+                              Content="&#xE96D;"
+                              Height="30"
+                              Margin="5,0"
+                              Width="30"
+                              Delay="500"
+                              Interval="40"
+                              FontSize="18"
+                              ToolTip="Rotate Up - Home Key"
+                              x:Name="MapDowntBtn"
+                              Command="{Binding MapUp}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

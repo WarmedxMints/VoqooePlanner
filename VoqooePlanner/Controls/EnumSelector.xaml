@@ -1,0 +1,52 @@
+﻿<Button x:Class="VoqooePlanner.Controls.EnumSelector"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:VoqooePlanner.Controls"
+        mc:Ignorable="d"
+        Click="Button_Click"
+        Foreground="{DynamicResource PrimaryControlForeground}"    
+        d:DesignHeight="450"
+        d:DesignWidth="800">
+    <Button.ContextMenu>
+        <ContextMenu x:Name="menu"
+                     Closed="Menu_Closed">
+            <ContextMenu.Resources>
+                <ItemsPanelTemplate x:Key="MenuItemPanelTemplate">
+                    <StackPanel Margin="0"
+                                Orientation="Vertical"                                
+                                Background="{DynamicResource PrimaryControlBackground}" />
+                </ItemsPanelTemplate>
+            </ContextMenu.Resources>
+            <ContextMenu.Style>
+                <Style TargetType="{x:Type ContextMenu}">
+                    <Setter Property="Background"
+                            Value="{DynamicResource PrimaryDisabled}" />
+                    <Setter Property="Foreground"
+                            Value="{DynamicResource PrimaryControlForeground}" />
+                    <Setter Property="BorderBrush"
+                            Value="{DynamicResource PrimaryControlBorder}" />
+                    <Setter Property="Padding"
+                            Value="0" />
+                    <Setter Property="FontFamily"
+                            Value="{StaticResource Eurostile}" />
+                    <Setter Property="FontSize"
+                            Value="16" />
+                    <Setter Property="ItemsPanel"
+                            Value="{DynamicResource MenuItemPanelTemplate}" />
+                    <Setter Property="HorizontalContentAlignment"
+                            Value="Left" />
+                    <Setter Property="VerticalContentAlignment"
+                            Value="Center" />
+                </Style>
+            </ContextMenu.Style>
+        </ContextMenu>
+    </Button.ContextMenu>
+    <Button.Style>
+        <Style BasedOn="{StaticResource SphereListGridBtn}"
+               TargetType="Button">
+
+        </Style>
+    </Button.Style>
+</Button>

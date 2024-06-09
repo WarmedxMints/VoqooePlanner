@@ -1,0 +1,100 @@
+﻿<UserControl x:Class="VoqooePlanner.Controls.NearbySystemsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels"
+             xmlns:local="clr-namespace:VoqooePlanner.Controls"
+             mc:Ignorable="d"
+             FontSize="18"
+             d:DataContext="{d:DesignInstance Type=vmodels:VoqooeListViewModel}"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+    <Grid>
+        <GroupBox Header="Nearest Systems (Max 50)"
+                  Width="Auto"
+                  BorderThickness="0.5"
+                  Margin="0,0,0,10"
+                  Padding="10,5">
+            <DataGrid ItemsSource="{Binding VoqooeSystems}"
+                      Background="Transparent"
+                      x:Name="SystemGrid"
+                      BorderThickness="0"
+                      Loaded="DataGrid_Loaded"
+                      Unloaded="DataGrid_Unloaded"
+                      HeadersVisibility="Column"
+                      Style="{StaticResource BaseDataGridStyle}">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Rectangle Fill="{Binding Scoopable}"
+                                           Width="5"
+                                           Height="18" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Binding="{Binding StarType}"
+                                        Width="SizeToCells"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{DynamicResource DataGridHeaderLeft}" />
+                    <DataGridTemplateColumn Header="System Name"
+                                            IsReadOnly="True"
+                                            HeaderStyle="{DynamicResource DataGridHeaderLeft}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}"
+                                               Margin="0,0,10,0"/>
+                                    <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.CopyStringToClipboard}"
+                                            CommandParameter="{Binding Name}"
+                                            BorderThickness="0"
+                                            Foreground="Azure"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Content="&#xE77F;"
+                                            ToolTip="Copy To Clipboard"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            FontSize="14" />
+                                </StackPanel>                                            
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Binding="{Binding Value}"
+                                        Header="Value"
+                                        MinWidth="100"
+                                        IsReadOnly="True"
+                                        CellStyle="{DynamicResource DataGridCellRightPadding}"
+                                        Width="SizeToCells"
+                                        HeaderStyle="{DynamicResource DataGridHeaderCenter}" />
+                    <DataGridTextColumn Binding="{Binding Visited}"
+                                        CellStyle="{DynamicResource DataGridCellCenter}"
+                                        Header="Visited"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                        FontSize="16"
+                                        FontFamily="Segoe MDL2 Assets" />
+                    <DataGridTextColumn Binding="{Binding UserVisited}"
+                                        CellStyle="{DynamicResource DataGridCellCenter}"
+                                        Header="You Visited"
+                                        IsReadOnly="True"
+                                        FontSize="16"
+                                        HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                        FontFamily="Segoe MDL2 Assets" />
+                    <DataGridTextColumn Binding="{Binding ContainsELW}"
+                                        CellStyle="{DynamicResource DataGridCellCenter}"                                        
+                                        Header="Has ELW"
+                                        IsReadOnly="True"
+                                        FontSize="16"
+                                        HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                        FontFamily="Segoe MDL2 Assets" />
+                    <DataGridTextColumn Binding="{Binding Distance}"
+                                        Header="Distance"
+                                        IsReadOnly="True"
+                                        CellStyle="{DynamicResource DataGridCellRightPadding}"
+                                        HeaderStyle="{DynamicResource DataGridHeaderCenter}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+    </Grid>
+</UserControl>

@@ -1,0 +1,172 @@
+﻿<UserControl x:Class="VoqooePlanner.Controls.NearbyListHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:models="clr-namespace:VoqooePlanner.Models"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels"
+             xmlns:local="clr-namespace:VoqooePlanner.Controls"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             xmlns:journal="clr-namespace:EliteJournalReader;assembly=EliteJournalReader"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vmodels:VoqooeListViewModel}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="StarTypes"
+                            MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="journal:StarType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <GroupBox Header="Current System"
+                  Width="Auto"
+                  BorderThickness="0.5"
+                  Margin="0,0,0,10"
+                  Padding="10,5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="{Binding CurrentSystem.Name}"
+                           Margin="0,0,0,5"
+                           FontSize="28" />
+
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition MinWidth="100"
+                                          Width="Auto" />
+                        <ColumnDefinition MinWidth="100"
+                                          Width="Auto" />
+                        <ColumnDefinition MinWidth="100"
+                                          Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20" />
+                        <RowDefinition Height="28" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="X"
+                               FontSize="14"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1"
+                             FontSize="16"
+                             IsReadOnly="True"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding CurrentSystem.X, Mode=OneWay}"
+                             Background="{DynamicResource PrimaryControlBackground}"
+                             BorderBrush="{StaticResource PrimaryControlBorder}"
+                             BorderThickness="1"
+                             Margin="5,0" />
+
+                    <TextBlock Text="Y"
+                               Grid.Column="1"
+                               FontSize="14"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="1"
+                             FontSize="16"
+                             IsReadOnly="True"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding CurrentSystem.Y, Mode=OneWay}"
+                             Background="{DynamicResource PrimaryControlBackground}"
+                             BorderBrush="{StaticResource PrimaryControlBorder}"
+                             BorderThickness="1"
+                             Margin="5,0" />
+
+                    <TextBlock Text="Z"
+                               Grid.Column="2"
+                               FontSize="14"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="2"
+                             FontSize="16"
+                             IsReadOnly="True"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding CurrentSystem.Z, Mode=OneWay}"
+                             Background="{DynamicResource PrimaryControlBackground}"
+                             BorderBrush="{StaticResource PrimaryControlBorder}"
+                             BorderThickness="1"
+                             Margin="5,0" />
+                </Grid>
+                <TextBlock Grid.Row="2"
+                           Margin="0,10,0,0"
+                           Text="{Binding CurrentSystem.DistanceFromHub}" />
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Column="2"
+                  Header="System List Options"
+                  Width="Auto"
+                  BorderThickness="0.5"
+                  Margin="0,0,0,10"
+                  Padding="10,5">
+            <StackPanel Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        Orientation="Vertical">
+                <CheckBox Content="Exclude Visited Systems"
+                          IsThreeState="False"
+                          Foreground="{DynamicResource PrimaryControlForeground}"
+                          IsHitTestVisible="True"
+                          IsChecked="{Binding Path=NearSystemOptions, 
+                                            Converter={StaticResource EnumFlagConverter},
+                                            ConverterParameter={x:Static models:NearBySystemsOptions.ExcludeVisited}}"
+                          HorizontalAlignment="Stretch"
+                          Style="{DynamicResource CheckBoxStyle}"/>
+                <CheckBox Content="Exclude Systems You've Visited"
+                          IsThreeState="False"
+                          IsChecked="{Binding Path=NearSystemOptions, 
+                                        Converter={StaticResource EnumFlagConverter},
+                                        ConverterParameter={x:Static models:NearBySystemsOptions.ExcludeUserVisited}}"
+                          Foreground="{DynamicResource PrimaryControlForeground}"
+                          IsHitTestVisible="True"
+                          HorizontalAlignment="Stretch"
+                          Style="{DynamicResource CheckBoxStyle}"/>
+                <CheckBox Content="Include ELW Systems You've Not Visited"
+                          IsThreeState="False"
+                          Foreground="{DynamicResource PrimaryControlForeground}"
+                          IsHitTestVisible="True"
+                          HorizontalAlignment="Stretch"
+                          Style="{DynamicResource CheckBoxStyle}"
+                          IsChecked="{Binding Path=NearSystemOptions, 
+                                        Converter={StaticResource EnumFlagConverter},
+                                        ConverterParameter={x:Static models:NearBySystemsOptions.IncludeUnvisitedELWs}}" />
+                <CheckBox Content="Include Valueable Systems You've Not Visited"
+                          IsThreeState="False"
+                          Foreground="{DynamicResource PrimaryControlForeground}"
+                          IsHitTestVisible="True"
+                          HorizontalAlignment="Stretch"
+                          Style="{DynamicResource CheckBoxStyle}"
+                          IsChecked="{Binding Path=NearSystemOptions, 
+                                    Converter={StaticResource EnumFlagConverter},
+                                    ConverterParameter={x:Static models:NearBySystemsOptions.IncludeUnvisitedValue}}" />
+
+                <local:EnumSelector Width="200"
+                                    Margin="0,5,0,0"
+                                    HorizontalAlignment="Left"
+                                    Content="Star Class Filter"
+                                    OnMenuClosed="{Binding UpdateNearby}"
+                                    SelectedValues="{Binding SelectedStarClasses}"
+                                    BackingEnum="{Binding Source={StaticResource StarTypes}}"/>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</UserControl>
