@@ -1,7 +1,7 @@
 ﻿using ODUtils.Helpers;
 using System.Windows;
 using System.Windows.Controls;
-using VoqooePlanner.ViewModels;
+using VoqooePlanner.ViewModels.MainViews;
 namespace VoqooePlanner.Controls
 {
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿using ODUtils.Models;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.ModelViews
 {
     public class RouteStopViewModel(VoqooeSystemViewModel starSystem, VoqooeSystemViewModel? prevSystem = null) : ViewModelBase
     {

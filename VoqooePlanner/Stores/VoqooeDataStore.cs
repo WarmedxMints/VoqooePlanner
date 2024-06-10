@@ -3,6 +3,7 @@ using EliteJournalReader.Events;
 using System.Collections.Concurrent;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services.Database;
+using VoqooePlanner.ViewModels.ModelViews;
 
 namespace VoqooePlanner.Stores
 {
@@ -16,6 +17,13 @@ namespace VoqooePlanner.Stores
         private readonly List<VoqooeSystem> _voqooeSystems;
         private List<JournalCommander> _journalCommanders;
         private readonly ConcurrentDictionary<int, List<VoqooeSystem>> _systemVisitsToAdd = [];
+
+        private readonly List<RouteStopViewModel> route = [];
+
+        private RouteStopViewModel? selectedItem;
+
+        public List<RouteStopViewModel> Route => route;
+        public RouteStopViewModel? SelectedItem { get => selectedItem; set { selectedItem = value; } }
         public IEnumerable<JournalCommander> JournalCommaders => _journalCommanders;
 
         private JournalCommander _currentCommander = new(0, string.Empty, string.Empty, string.Empty, false);
@@ -43,6 +51,7 @@ namespace VoqooePlanner.Stores
         public EventHandler<bool>? ReadyStatusChange;
         public EventHandler? OnSystemsUpdated;
         public EventHandler<JournalSystem?>? OnCurrentSystemChanged;
+        public EventHandler<IEnumerable<OrganicScanDetails>>? OnOrganicDataChanged;
 
         public VoqooeDataStore(IVoqooeDatabaseProvider voqooeDatabaseProvider, JournalWatcherStore journalWatcherStore, SettingsStore settingsStore)
         {
@@ -58,7 +67,7 @@ namespace VoqooePlanner.Stores
         }
 
         private void OnLiveStatusChange(object? sender, bool e)
-        {  
+        {
             if (_systemVisitsToAdd.Count != 0)
             {
                 foreach (var system in _systemVisitsToAdd)
@@ -70,7 +79,7 @@ namespace VoqooePlanner.Stores
 
             _ = Task.Run(UpdateSystems);
 
-            OnCurrentSystemChanged?.Invoke(this, currentSystem);            
+            OnCurrentSystemChanged?.Invoke(this, currentSystem);
             OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
             Ready = e && Loaded;
             ReadyStatusChange?.Invoke(this, Ready);
@@ -91,8 +100,6 @@ namespace VoqooePlanner.Stores
 
         private void ProcessJournalEntry(JournalEntry e)
         {
-            
-
             switch (e.EventType)
             {
                 case JournalTypeEnum.Location:
@@ -128,7 +135,7 @@ namespace VoqooePlanner.Stores
                         }
 
                         var voqooeSystem = new VoqooeSystem(fsdJump.SystemAddress, fsdJump.StarSystem, fsdJump.StarPos.X, fsdJump.StarPos.Y, fsdJump.StarPos.Z, true, false, 0, 0);
- 
+
                         if (Ready)
                         {
                             voqooeDatabaseProvider.AddCommanderVisit(voqooeSystem, e.CommanderID);
@@ -142,9 +149,62 @@ namespace VoqooePlanner.Stores
                         _systemVisitsToAdd[e.CommanderID].Add(voqooeSystem);
                     }
                     break;
+                case JournalTypeEnum.ScanOrganic:
+                    if (e.CommanderID == _currentCommander.Id
+                        && e.EventData is ScanOrganicEvent.ScanOrganicEventArgs scanOrganic
+                        && scanOrganic.ScanType.Equals("Analyse"))
+                    {
+                        _ = AddBioData(scanOrganic.Species, scanOrganic.Species_Localised, scanOrganic.Genus, scanOrganic.Genus_Localised, OrganicScanState.Analysed);
+                    }
+                    break;
+                case JournalTypeEnum.SellOrganicData:
+                    if (e.CommanderID == _currentCommander.Id
+                        && e.EventData is SellOrganicDataEvent.SellOrganicDataEventArgs sellOrganic)
+                    {
+                        var ret = new List<OrganicScanDetails>();
+                        foreach(var organic in sellOrganic.BioData)
+                        {
+                            ret.Add(AddBioData(organic.Species, organic.Species_Localised, organic.Genus, organic.Genus_Localised, OrganicScanState.Sold, false));
+                        }
+
+                        OnOrganicDataChanged?.Invoke(this, ret);
+                    }
+                    break;
+                case JournalTypeEnum.Died:
+                    if (e.CommanderID == _currentCommander.Id
+                        && e.EventData is DiedEvent.DiedEventArgs diedEvent)
+                    {
+                        var itemsToRemove = bioData.Where(x => x.Value.State != OrganicScanState.Sold);
+
+                        foreach (var item in itemsToRemove)
+                        {
+                            bioData.Remove(item.Key);
+                        }
+                    }
+                    break;
+
             }
         }
 
+        private OrganicScanDetails AddBioData(string species, string species_localised, string genus,string genus_localised, OrganicScanState scanState, bool fireEvent = true)
+        {
+            if (bioData.ContainsKey(species) == false)
+            {
+                bioData.TryAdd(species, new(species, species_localised, genus, genus_localised));
+            }
+
+            var data = bioData[species];
+
+            if (data.State != OrganicScanState.Sold)
+                data.State = scanState;
+
+            if (fireEvent && Ready)
+            {
+                OnOrganicDataChanged?.Invoke(this, [data]);
+            }
+
+            return data;
+        }
         public async Task Load()
         {
             try
@@ -160,14 +220,14 @@ namespace VoqooePlanner.Stores
 
         private async Task Initialise()
         {
-            HubSystem = voqooeDatabaseProvider.GetVoqooeSystemByName("Voqooe BI-H d11-864");       
+            HubSystem = voqooeDatabaseProvider.GetVoqooeSystemByName("Voqooe BI-H d11-864");
 
             await UpdateCommanders();
 
             Loaded = true;
 
             var cmdr = GetSelectedComander(settingsStore.SelectedCommanderID);
-            SetSelectedCommander(cmdr);
+            await SetSelectedCommander(cmdr);
 
             OnCommandersUpdated?.Invoke(this, EventArgs.Empty);
             OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
@@ -178,12 +238,12 @@ namespace VoqooePlanner.Stores
             if (Ready == false)
                 return;
 
-            _ = Task.Run(() =>
+            _ = Task.Run(async () =>
             {
                 Ready = false;
                 ReadyStatusChange?.Invoke(this, Ready);
                 var cmdr = GetSelectedComander(id);
-                SetSelectedCommander(cmdr);
+                await SetSelectedCommander(cmdr);
             });
 
         }
@@ -210,7 +270,8 @@ namespace VoqooePlanner.Stores
             _voqooeSystems.AddRange(systems);
             OnSystemsUpdated?.Invoke(this, EventArgs.Empty);
         }
-        private void SetSelectedCommander(JournalCommander commander)
+
+        private async Task SetSelectedCommander(JournalCommander commander)
         {
             journalWatcherStore.StopWatcher();
             _currentCommander = commander;
@@ -221,7 +282,23 @@ namespace VoqooePlanner.Stores
             {
                 OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
             }
+
+            await BuildBioData();
             journalWatcherStore.StartWatching(commander);
+        }
+
+        private Dictionary<string, OrganicScanDetails> bioData = [];
+
+        public Dictionary<string, OrganicScanDetails> BioData => bioData;
+        private async Task BuildBioData()
+        {
+            bioData.Clear();
+            var events = await voqooeDatabaseProvider.GetJournalEntriesOfType(_currentCommander.Id, [(int)JournalTypeEnum.ScanOrganic, (int)JournalTypeEnum.SellOrganicData, (int)JournalTypeEnum.Died ]);
+
+            foreach (var e in events)
+            {
+                ProcessJournalEntry(e);
+            }
         }
 
         private JournalCommander GetSelectedComander(int id)
@@ -235,7 +312,7 @@ namespace VoqooePlanner.Stores
             var cmdrs = await voqooeDatabaseProvider.GetAllJournalCommanders();
             _journalCommanders.Clear();
             _journalCommanders.AddRange(cmdrs);
-           
+
             //If we haven't found any commanders yet, set the first one
             if (settingsStore.SelectedCommanderID == 0 && _journalCommanders.Count != 0)
             {

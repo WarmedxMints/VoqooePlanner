@@ -2,7 +2,7 @@
 using VoqooePlanner.DTOs;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services.Database;
-using VoqooePlanner.ViewModels;
+using VoqooePlanner.ViewModels.ModelViews;
 
 namespace VoqooePlanner.Stores
 {

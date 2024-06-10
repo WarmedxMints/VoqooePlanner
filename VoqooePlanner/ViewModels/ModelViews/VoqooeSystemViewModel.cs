@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using VoqooePlanner.Models;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.ModelViews
 {
     public class VoqooeSystemViewModel(VoqooeSystem system) : ViewModelBase
     {

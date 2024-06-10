@@ -14,12 +14,13 @@ using VoqooePlanner.Stores;
 using ODUtils.Dialogs;
 using ODUtils.PathFinding;
 using VoqooePlanner.Services.Database;
+using VoqooePlanner.ViewModels.ModelViews;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.MainViews
 {
     public sealed class VoqooeListViewModel : ViewModelBase
     {
-		private bool isLoading = true;
+        private bool isLoading = true;
         public bool IsLoading { get => isLoading; set { isLoading = value; OnPropertyChanged(nameof(IsLoading)); } }
 
         private readonly VoqooeDataStore voqooeDataStore;
@@ -27,13 +28,13 @@ namespace VoqooePlanner.ViewModels
         private readonly SettingsStore settings;
         private readonly JournalWatcherStore journalWatcher;
         private readonly ObservableCollection<VoqooeSystemViewModel> voqooeSystems;
-        private readonly List<RouteStopViewModel> route;
+        //private readonly List<RouteStopViewModel> Route;
 
-        private RouteStopViewModel? selectedItem;
+        //private RouteStopViewModel? voqooeDataStore.SelectedItem;
 
-        private string readingFileText = string.Empty;
+        private string readingFileText = "Scanning Bio Data";
         public string ReadingFileText { get => readingFileText; set { readingFileText = value; OnPropertyChanged(nameof(ReadingFileText)); } }
-        
+
         private string distance = "0 ly";
         public string Distance { get => distance; set { distance = value; OnPropertyChanged(nameof(Distance)); } }
 
@@ -49,15 +50,15 @@ namespace VoqooePlanner.ViewModels
 
         public RouteStopViewModel? SelectedItem
         {
-            get => selectedItem;
+            get => voqooeDataStore.SelectedItem;
             set
             {
-                selectedItem = value;
+                voqooeDataStore.SelectedItem = value;
                 OnPropertyChanged(nameof(SelectedItem));
 
-                if (selectedItem != null)
+                if (voqooeDataStore.SelectedItem != null)
                 {
-                    OnSeletedItemChanged?.Invoke(this, selectedItem);
+                    OnSeletedItemChanged?.Invoke(this, voqooeDataStore.SelectedItem);
                 }
             }
         }
@@ -93,7 +94,7 @@ namespace VoqooePlanner.ViewModels
             }
         }
 
-        public IEnumerable<RouteStopViewModel> Route => route;
+        public List<RouteStopViewModel> Route => voqooeDataStore.Route;
         public IEnumerable<VoqooeSystemViewModel> VoqooeSystems => voqooeSystems;
 
         private JournalSystemViewModel? currentSystem;
@@ -107,7 +108,7 @@ namespace VoqooePlanner.ViewModels
             }
         }
 
-        public ICommand LoadSphereDataCommand { get; }       
+        public ICommand LoadSphereDataCommand { get; }
         public ICommand ZoomMapOut { get; }
         public ICommand ZoomMapIn { get; }
         public ICommand MapLeft { get; }
@@ -123,14 +124,13 @@ namespace VoqooePlanner.ViewModels
         public EventHandler<RouteStopViewModel>? OnSeletedItemChanged;
         public EventHandler<string>? OnStringCopiedToClipboard;
         public VoqooeListViewModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher)
-		{
+        {
             this.voqooeDataStore = voqooeDataStore;
             this.voqooeDatabaseProvider = voqooeDatabaseProvider;
             this.settings = settings;
             this.journalWatcher = journalWatcher;
             voqooeSystems = [];
-            route = [];
-           
+
             LoadSphereDataCommand = new LoadVoqooeDataCommand(this, voqooeDataStore);
 
             voqooeDataStore.OnSystemsUpdated += OnSystemsUpdated;
@@ -186,8 +186,14 @@ namespace VoqooePlanner.ViewModels
             OnPropertyChanged(nameof(AutoCopyNextSystem));
             OnPropertyChanged(nameof(AutoSelectNextSystem));
             OnPropertyChanged(nameof(SelectedStarClasses));
+            
             IsLoading = !e;
-        }      
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ReadingFileText = $"Scanning Bio Data";
+            });
+        }
 
         private void OnCurrentSystemChanged(object? sender, JournalSystem? e)
         {
@@ -195,7 +201,7 @@ namespace VoqooePlanner.ViewModels
             var distance = SystemPosition.Distance(e?.Pos ?? new(), new() { X = hub.X, Y = hub.Y, Z = hub.Z });
             CurrentSystem = new(e ?? new(0, new(), "Unknown"), distance);
 
-            if(SelectedItem != null && e != null && AutoSelectNextSystem && e.Name == SelectedItem.Name)
+            if (SelectedItem != null && e != null && AutoSelectNextSystem && e.Name == SelectedItem.Name)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -213,7 +219,7 @@ namespace VoqooePlanner.ViewModels
         {
             var ret = new VoqooeListViewModel(voqooeDataStore, voqooeDatabaseProvider, settings, journalWatcher);
             Task.Run(() => ret.LoadSphereDataCommand.Execute(null));
-            if(voqooeDataStore.Ready)
+            if (voqooeDataStore.Ready)
             {
                 ret.OnCurrentSystemChanged(null, voqooeDataStore.CurrentSystem);
             }
@@ -232,6 +238,14 @@ namespace VoqooePlanner.ViewModels
                     voqooeSystems.Add(viewModel);
                 }
                 OnPropertyChanged(nameof(VoqooeSystems));
+
+                if (Route.Count > 0)
+                {
+                    CreateMap();
+                    ChangeRow(0);
+                    OnPropertyChanged(nameof(Route));
+                    OnPropertyChanged(nameof(SelectedItem));
+                }
             });
         }
 
@@ -242,15 +256,16 @@ namespace VoqooePlanner.ViewModels
                 return;
             }
 
-            var startSystem = voqooeDatabaseProvider.GetVoqooeSystemByName(CurrentSystem.Name);
+            var startSystem = new VoqooeSystem(0, CurrentSystem.Name, CurrentSystem.Pos.X, CurrentSystem.Pos.Y, CurrentSystem.Pos.Z, true, false, 0, 0);
+     
 
             if (startSystem is null)
             {
-                _ = ODMessageBox.Show(null, "Error", $"Start System {CurrentSystem.Name} not found in the database", System.Windows.MessageBoxButton.OK);
+                _ = ODMessageBox.Show(null, "Error", $"Start System {CurrentSystem.Name} not found in the database", MessageBoxButton.OK);
                 return;
             }
 
-            
+
             var stops = new List<RouteStop>();
 
 
@@ -262,36 +277,36 @@ namespace VoqooePlanner.ViewModels
                 stops.Add(new(sys.Pos, sys));
             }
 
-            var routeCalc = new TravellingSalesmAlgorithm(firtStop, stops);
-            var routeStops = await routeCalc.GetRouteAsync();
+            var RouteCalc = new TravellingSalesmAlgorithm(firtStop, stops);
+            var RouteStops = await RouteCalc.GetRouteAsync();
 
-            if (routeStops == null)
+            if (RouteStops == null)
             {
                 return;
             }
             stops.Clear();
-            stops = routeStops.ToList();
+            stops = RouteStops.ToList();
 
             var count = stops.Count;
             double totalDistance = 0;
-            route.Clear();
+            Route.Clear();
 
-            route.Add(new RouteStopViewModel((VoqooeSystemViewModel)stops[0].System));
+            Route.Add(new RouteStopViewModel((VoqooeSystemViewModel)stops[0].System));
 
             for (var i = 1; i < count; i++)
             {
                 var modelToAdd = new RouteStopViewModel((VoqooeSystemViewModel)stops[i].System, (VoqooeSystemViewModel)stops[i - 1].System);
-                route.Add(modelToAdd);
+                Route.Add(modelToAdd);
                 totalDistance += modelToAdd.Distance;
             }
 
             var endSystem = new RouteStopViewModel((VoqooeSystemViewModel)stops[0].System, (VoqooeSystemViewModel)stops[count - 1].System);
-            route.Add(endSystem);
+            Route.Add(endSystem);
             totalDistance += endSystem.Distance;
 
             Distance = $"{totalDistance:N2} ly";
-            //SystemCount = $"{route.Count - 1:N0}";
-            SelectedItem = route[0];
+            //SystemCount = $"{Route.Count - 1:N0}";
+            SelectedItem = Route[0];
             OnPropertyChanged(nameof(Route));
 
             CreateMap();
@@ -301,14 +316,14 @@ namespace VoqooePlanner.ViewModels
 
         private void ChangeRow(int value)
         {
-            if (selectedItem == null)
+            if (voqooeDataStore.SelectedItem == null)
             {
                 return;
             }
 
-            var newIndex = route.IndexOf(selectedItem) + value;
+            var newIndex = Route.IndexOf(voqooeDataStore.SelectedItem) + value;
 
-            var count = route.Count - 1;
+            var count = Route.Count - 1;
 
             if (newIndex < 1)
             {
@@ -318,7 +333,7 @@ namespace VoqooePlanner.ViewModels
             {
                 newIndex = 1;
             }
-            var item = route[newIndex];
+            var item = Route[newIndex];
             SelectedItem = item;
             ColourMap(newIndex);
             if (AutoCopyNextSystem)
@@ -358,23 +373,23 @@ namespace VoqooePlanner.ViewModels
 
         private void CreateMap()
         {
-            if (route.Count == 0)
+            if (Route.Count == 0)
             {
                 return;
             }
 
-            var routeCount = route.Count;
+            var RouteCount = Route.Count;
             SystemSpheres = [];
             SystemLines = [];
 
             var centroid = new Position(0, 0, 0);
 
-            foreach (var system in route)
+            foreach (var system in Route)
             {
                 centroid += system.Pos;
             }
 
-            centroid /= routeCount;
+            centroid /= RouteCount;
 
             Model3DGroup gr = new();
             gr.Children.Add(new AmbientLight());
@@ -387,9 +402,9 @@ namespace VoqooePlanner.ViewModels
             //line3 = MeshGeneration.CreatBoxLine(new Position(0, 0, -0.5), new Position(0, 0, -5), axisblue, 1, true);
             //gr.Children.Add(line3);
 
-            for (var i = 0; i < routeCount - 1; i++)
+            for (var i = 0; i < RouteCount - 1; i++)
             {
-                var sys = route[i];
+                var sys = Route[i];
                 var start = sys.Pos - centroid;
                 //ED uses a Z+ system where as wpf seems to use a Z- so we need to flip it
                 start = start.FlipZ;
@@ -397,23 +412,23 @@ namespace VoqooePlanner.ViewModels
                 SystemSpheres.Add(sys.Name, sphere);
                 gr.Children.Add(sphere);
                 Position end = new(0, 0, 0);
-                if (i == routeCount - 2)
+                if (i == RouteCount - 2)
                 {
-                    end = route[0].Pos - centroid;
+                    end = Route[0].Pos - centroid;
                     end = end.FlipZ;
                     var line = MeshGeneration.CreatBoxLine(start, end, grey, 1);
                     SystemLines.Add(sys.Name, line);
                     gr.Children.Add(line);
                     continue;
                 }
-                end = route[i + 1].Pos - centroid;
+                end = Route[i + 1].Pos - centroid;
                 end = end.FlipZ;
                 var line1 = MeshGeneration.CreatBoxLine(start, end, grey, 1);
                 gr.Children.Add(line1);
                 SystemLines.Add(sys.Name, line1);
             }
 
-            var maxDistance = route.Max(x => x.Pos.DistanceFrom(centroid));
+            var maxDistance = Route.Max(x => x.Pos.DistanceFrom(centroid));
             CameraR = maxDistance * 3;
             CameraTheta = Math3d.ConvertToRadians(90);// 3.14159;
             CameraPhi = 0;
@@ -453,20 +468,20 @@ namespace VoqooePlanner.ViewModels
 
         private void GetSystemNames(int index, out string fromSystem, out string toSystem)
         {
-            if (index > 0 && index < route.Count)
+            if (index > 0 && index < Route.Count)
             {
-                fromSystem = route[index - 1].Name;
-                toSystem = route[index].Name;
+                fromSystem = Route[index - 1].Name;
+                toSystem = Route[index].Name;
                 return;
             }
             if (index == 0)
             {
-                fromSystem = route[index].Name;
-                toSystem = route[index + 1].Name;
+                fromSystem = Route[index].Name;
+                toSystem = Route[index + 1].Name;
                 return;
             }
-            fromSystem = route[index - 1].Name;
-            toSystem = route[index].Name;
+            fromSystem = Route[index - 1].Name;
+            toSystem = Route[index].Name;
         }
 
         private void PositionCamera()

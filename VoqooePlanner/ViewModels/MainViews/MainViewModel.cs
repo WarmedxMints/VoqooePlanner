@@ -5,8 +5,9 @@ using System.Windows.Input;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services;
 using VoqooePlanner.Stores;
+using VoqooePlanner.ViewModels.ModelViews;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.MainViews
 {
     public sealed class MainViewModel : ViewModelBase
     {
@@ -21,7 +22,7 @@ namespace VoqooePlanner.ViewModels
         public ViewModelBase? CurrentViewModel => navStore.CurrentViewModel;
         public string? CurrentSystem => voqooeDataStore.CurrentSystem?.Name;
 
-        public ObservableCollection <JournalCommaderViewModel> JournalCommaders { get; set; } = [];
+        public ObservableCollection<JournalCommaderViewModel> JournalCommaders { get; set; } = [];
 
         private JournalCommaderViewModel? selectedCommander;
         public JournalCommaderViewModel? SelectedCommander
@@ -29,10 +30,10 @@ namespace VoqooePlanner.ViewModels
             get => selectedCommander;
             set
             {
-                if(value == selectedCommander) 
+                if (value == selectedCommander)
                     return;
                 selectedCommander = value;
-                if(UiEnabled && selectedCommander != null && selectedCommander.Id != settingsStore.SelectedCommanderID) 
+                if (UiEnabled && selectedCommander != null && selectedCommander.Id != settingsStore.SelectedCommanderID)
                     voqooeDataStore.ChangeCommander(selectedCommander.Id);
 
                 OnPropertyChanged(nameof(SelectedCommander));
@@ -61,9 +62,11 @@ namespace VoqooePlanner.ViewModels
             }
         }
 
-        public ICommand NavigateToVoqooeList { get; }// => navigationViewModel.VoqooeListCommand;
-        public ICommand NavigateToSettingView { get; }//=> navigationViewModel.SettingViewCommand;
+        public ICommand NavigateToVoqooeList { get; }
+        public ICommand NavigateToSettingView { get; }
+        public ICommand NavigateToOrganicView { get; }
         public ICommand ResetWindowPositionCommand { get; }
+
         public EventHandler<bool>? OnSystemsUpdateEvent;
         public MainViewModel(NavigationStore navStore,
                              VoqooeDataStore voqooeDataStore,
@@ -84,6 +87,7 @@ namespace VoqooePlanner.ViewModels
 
             NavigateToVoqooeList = new RelayCommand(OnNavigateToList, (_) => CurrentViewModel is not VoqooeListViewModel && UiEnabled);
             NavigateToSettingView = new RelayCommand(OnNavigateToSettings, (_) => CurrentViewModel is not SettingsViewModel && UiEnabled);
+            NavigateToOrganicView = new RelayCommand(OnNavigateToExoChecklist, (_) => CurrentViewModel is not OrganicCheckListViewModel && UiEnabled);
             ResetWindowPositionCommand = new RelayCommand(OnResetWindowPos);
 
             Title = $"Voqooe Planner v{App.AppVersion.Major}.{App.AppVersion.Minor}";
@@ -95,13 +99,13 @@ namespace VoqooePlanner.ViewModels
         {
             if (string.IsNullOrEmpty(obj)) return;
 
-            if(string.Equals(obj, "AutoUpdateStart"))
+            if (string.Equals(obj, "AutoUpdateStart"))
             {
                 OnSystemsUpdateEvent?.Invoke(this, true);
                 return;
             }
 
-            if(string.Equals(obj, "AutoUpdateEnd"))
+            if (string.Equals(obj, "AutoUpdateEnd"))
             {
                 OnSystemsUpdateEvent?.Invoke(this, false);
                 return;
@@ -127,6 +131,10 @@ namespace VoqooePlanner.ViewModels
             navigationViewModel.VoqooeListCommand.Execute(null);
         }
 
+        private void OnNavigateToExoChecklist(object? obj)
+        {
+            navigationViewModel.OrganicViewCommand.Execute(null);
+        }
         private void OnResetWindowPos(object? obj)
         {
             SettingsStore.ResetWindowPosition();
@@ -164,7 +172,7 @@ namespace VoqooePlanner.ViewModels
                 return;
             }
 
-            SelectedCommander = cmdr;            
+            SelectedCommander = cmdr;
         }
 
         private void OnCurrentSystemChanged(object? sender, JournalSystem? e)

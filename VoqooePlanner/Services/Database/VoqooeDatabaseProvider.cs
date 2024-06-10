@@ -259,8 +259,8 @@ namespace VoqooePlanner.Services.Database
 
             var ret = await context.JournalEntries
                 .EventTypeCompare(cmdrId, types)
-                .OrderBy(x => x.Filename)
-                .ThenBy(x => x.Offset)
+                //.OrderBy(x => x.Filename)
+                //.ThenBy(x => x.Offset)
                 .Select(x => new JournalEntry(
                     x.Filename,
                     x.Offset,

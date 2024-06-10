@@ -1,7 +1,6 @@
 ﻿using System.Windows;
-using VoqooePlanner.Migrations;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.ModelViews
 {
     public sealed class WindowPositionViewModel : ViewModelBase
     {

@@ -29,7 +29,7 @@ namespace VoqooePlanner.Migrations
 
                     b.HasIndex("VoqooeSystemDTOAddress");
 
-                    b.ToTable("CommanderVistedSystems");
+                    b.ToTable("CommanderVistedSystems", (string)null);
                 });
 
             modelBuilder.Entity("VoqooePlanner.DTOs.JournalCommanderDTO", b =>
@@ -58,7 +58,7 @@ namespace VoqooePlanner.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("JournalCommanders");
+                    b.ToTable("JournalCommanders", (string)null);
                 });
 
             modelBuilder.Entity("VoqooePlanner.DTOs.JournalEntryDTO", b =>
@@ -81,7 +81,7 @@ namespace VoqooePlanner.Migrations
 
                     b.HasKey("Filename", "Offset");
 
-                    b.ToTable("JournalEntries");
+                    b.ToTable("JournalEntries", (string)null);
                 });
 
             modelBuilder.Entity("VoqooePlanner.DTOs.SettingsDTO", b =>
@@ -100,7 +100,7 @@ namespace VoqooePlanner.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Settings");
+                    b.ToTable("Settings", (string)null);
                 });
 
             modelBuilder.Entity("VoqooePlanner.DTOs.VoqooeSystemDTO", b =>
@@ -135,7 +135,7 @@ namespace VoqooePlanner.Migrations
 
                     b.HasKey("Address");
 
-                    b.ToTable("Systems");
+                    b.ToTable("Systems", (string)null);
                 });
 
             modelBuilder.Entity("CommanderVistedSystems", b =>

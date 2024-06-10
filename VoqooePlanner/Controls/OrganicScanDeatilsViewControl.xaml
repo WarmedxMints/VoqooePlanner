@@ -1,0 +1,84 @@
+﻿<UserControl x:Class="VoqooePlanner.Controls.OrganicScanDeatilsViewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:VoqooePlanner.Controls"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels.MainViews"
+             d:DataContext="{d:DesignInstance vmodels:OrganicCheckListViewModel}"
+             mc:Ignorable="d" 
+             x:Name="Root"
+             Margin="10,10"
+             Width="310"
+             FontSize="16"
+             FontWeight="Medium"
+             FontFamily="{StaticResource Eurostile}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="Genus"
+                   Text="{Binding ElementName=Root, Path=Title}"
+                   FontSize="22" />
+        
+        <DataGrid x:Name="Content"
+                  Grid.ColumnSpan="2"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  HeadersVisibility="None"
+                  IsReadOnly="True"
+                  IsHitTestVisible="False"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="{DynamicResource WindowBackground}"
+                  Background="Transparent"
+                  BorderThickness="1"
+                  CanUserAddRows="False"
+                  ItemsSource="{Binding ElementName=Root, Path=Species}">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding State}"
+                                     Value="None">
+                            <Setter Property="Background"
+                                    Value="Transparent"></Setter>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource NeutronStar}" />
+                            <Setter Property="FontWeight"
+                                    Value="Normal" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding State}"
+                                     Value="Analysed">
+                            <Setter Property="Background"
+                                    Value="YellowGreen" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource NavigationBarBackground}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding State}"
+                                     Value="Sold">
+                            <Setter Property="Background"
+                                    Value="{DynamicResource ScoopableStar}"></Setter>
+                            <Setter Property="Foreground"
+                                    Value="Black" />
+                            <Setter Property="FontWeight"
+                                    Value="Medium" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Name}"
+                                    Width="*" />
+                <DataGridTextColumn Binding="{Binding State}"
+                                    Width="75" />
+            </DataGrid.Columns>
+
+        </DataGrid>
+    </Grid>
+</UserControl>

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using ODUtils.Dialogs;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -11,6 +12,7 @@ using VoqooePlanner.Services;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
 using VoqooePlanner.ViewModels;
+using VoqooePlanner.ViewModels.MainViews;
 using VoqooePlanner.Windows;
 
 namespace VoqooePlanner
@@ -20,7 +22,7 @@ namespace VoqooePlanner
     /// </summary>
     public partial class App : Application
     {
-        public static readonly Version AppVersion = new(1, 0);
+        public static readonly Version AppVersion = new(1, 1);
 #if INSTALL
         public readonly static string BaseDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "VoqooePlanner");
 #else
@@ -54,12 +56,15 @@ namespace VoqooePlanner
                     //VMs
                     services.AddTransient(s => CreateVoqooeLisViewModel(s));
                     services.AddTransient(s => CreateSettingViewModel(s));
+                    services.AddTransient<OrganicCheckListViewModel>();
                     services.AddSingleton<LoaderViewModel>();
                     services.AddSingleton<MainViewModel>();
                     services.AddSingleton<NavigationViewModel>();
                     //Navigations
                     services.AddSingleton<Func<VoqooeListViewModel>>((s) => () => CreateVoqooeLisViewModel(s));
                     services.AddSingleton<NavigationService<VoqooeListViewModel>>();
+                    services.AddSingleton<NavigationService<OrganicCheckListViewModel>>();
+                    AddViewModelNavigation<OrganicCheckListViewModel>(services);
                     services.AddSingleton<Func<SettingsViewModel>>((s) => () => CreateSettingViewModel(s));
                     //Services
                     services.AddSingleton<NavigationService<SettingsViewModel>>();

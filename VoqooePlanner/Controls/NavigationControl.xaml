@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels.MainViews"
              xmlns:local="clr-namespace:VoqooePlanner.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vmodels:MainViewModel}"
@@ -33,6 +33,18 @@
 
         <Button Style="{StaticResource ColourImageBtn}"
                 ToolTip="Route Map"
+                Foreground="{DynamicResource PrimaryControlForeground}"
+                Command="{Binding NavigateToOrganicView}"
+                Grid.Row="1">
+            <Image Source="/Resources/exobtn.png"
+                   Stretch="Uniform"
+                   Margin="2"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+        </Button>
+        
+        <Button Style="{StaticResource ColourImageBtn}"
+                ToolTip="Settings"
                 Foreground="{DynamicResource PrimaryControlForeground}"
                 Command="{Binding NavigateToSettingView}"
                 Grid.Row="3">

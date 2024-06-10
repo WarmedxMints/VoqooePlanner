@@ -1,6 +1,6 @@
 ﻿using ODUtils.Commands;
 using VoqooePlanner.Stores;
-using VoqooePlanner.ViewModels;
+using VoqooePlanner.ViewModels.MainViews;
 
 namespace VoqooePlanner.Commands
 {

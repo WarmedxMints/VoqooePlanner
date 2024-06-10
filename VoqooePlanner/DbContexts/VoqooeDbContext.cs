@@ -17,7 +17,7 @@ namespace VoqooePlanner.DbContexts
                 u.Filename,
                 u.Offset
             });
-
+         
             modelBuilder.Entity<VoqooeSystemDTO>()
                 .HasMany(e => e.CommanderVisits)
                 .WithMany()

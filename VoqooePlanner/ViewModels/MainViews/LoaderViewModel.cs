@@ -6,7 +6,7 @@ using VoqooePlanner.Models;
 using VoqooePlanner.Services;
 using VoqooePlanner.Services.Database;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.MainViews
 {
     public sealed class LoaderViewModel(IVoqooeDatabaseProvider voqooeDatabaseProvider, SystemsUpdateService systemsUpdateService) : ViewModelBase
     {
@@ -14,24 +14,24 @@ namespace VoqooePlanner.ViewModels
         private readonly SystemsUpdateService systemsUpdateService = systemsUpdateService;
         private string loadingText = "Loading...";
         public string LoadingText
-		{
-			get => loadingText;
-			set
-			{
-				loadingText = value;
-				OnPropertyChanged(nameof(LoadingText));
-			}
-		}
+        {
+            get => loadingText;
+            set
+            {
+                loadingText = value;
+                OnPropertyChanged(nameof(LoadingText));
+            }
+        }
 
-		public Action? OnUpdateComplete;
+        public Action? OnUpdateComplete;
 
-		public async Task CheckForUpdates(Window loaderWindow)
-		{
-			await Task.Delay(1000);
-			LoadingText = "Checking For App Updates";
+        public async Task CheckForUpdates(Window loaderWindow)
+        {
+            await Task.Delay(1000);
+            LoadingText = "Checking For App Updates";
 
             var updateInfo = await Json.GetJsonFromUrlAndDeserialise<UpdateInfo>("https://raw.githubusercontent.com", "/WarmedxMints/ODUpdates/main/VoqooePlannerUpdate.json");
-
+            var a = App.AppVersion;
             if (updateInfo.Version > App.AppVersion)
             {
                 Application.Current.Dispatcher.Invoke(() =>
@@ -51,12 +51,12 @@ namespace VoqooePlanner.ViewModels
 
             await Task.Delay(1000);
 
-			LoadingText = "Loading Application";
+            LoadingText = "Loading Application";
 
-			await Task.Delay(1000); 
+            await Task.Delay(1000);
 
-			OnUpdateComplete?.Invoke();
-		}
+            OnUpdateComplete?.Invoke();
+        }
 
         private void OnUpdateTextChange(string obj)
         {

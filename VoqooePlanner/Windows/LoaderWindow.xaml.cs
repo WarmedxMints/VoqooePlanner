@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using VoqooePlanner.ViewModels;
+using VoqooePlanner.ViewModels.MainViews;
 
 namespace VoqooePlanner.Windows
 {

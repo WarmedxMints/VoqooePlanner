@@ -1,4 +1,6 @@
-﻿namespace VoqooePlanner.Models
+﻿using System.ComponentModel;
+
+namespace VoqooePlanner.Models
 {
     [Flags]
     public enum NearBySystemsOptions
@@ -8,5 +10,12 @@
         ExcludeUserVisited = 1 << 1,
         IncludeUnvisitedELWs = 1 << 2,
         IncludeUnvisitedValue = 1 << 3,
+    }
+
+    public enum OrganicScanState
+    {
+        None = 0,
+        Analysed = 1,
+        Sold = 2
     }
 }

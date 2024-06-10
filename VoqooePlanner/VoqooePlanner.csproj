@@ -14,6 +14,7 @@
 	  <None Remove="Resources\CLB_Official.ico" />
 	  <None Remove="Resources\CLB_Official.png" />
 	  <None Remove="Resources\CLB_Official_transparent.png" />
+	  <None Remove="Resources\exobtn.png" />
 	  <None Remove="Resources\good timing bd.otf" />
 	  <None Remove="Resources\Keyboard_Black_Ctrl.png" />
 	  <None Remove="Resources\Keyboard_Black_Del.png" />
@@ -58,6 +59,7 @@
 	  <Resource Include="Resources\CLB_Official.ico" />
 	  <Resource Include="Resources\CLB_Official.png" />
 	  <Resource Include="Resources\CLB_Official_transparent.png" />
+	  <Resource Include="Resources\exobtn.png" />
 	  <Resource Include="Resources\good timing bd.otf" />
 	  <Resource Include="Resources\Keyboard_Black_Ctrl.png" />
 	  <Resource Include="Resources\Keyboard_Black_Del.png" />

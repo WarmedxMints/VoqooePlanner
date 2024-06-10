@@ -4,8 +4,9 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
+using VoqooePlanner.ViewModels.ModelViews;
 
-namespace VoqooePlanner.ViewModels
+namespace VoqooePlanner.ViewModels.MainViews
 {
     public sealed class SettingsViewModel : ViewModelBase
     {
@@ -35,7 +36,7 @@ namespace VoqooePlanner.ViewModels
             this.voqooeDatabaseProvider = voqooeDatabaseProvider;
             this.voqooeDataStore = voqooeDataStore;
             OpenPayPal = new RelayCommand(OnOpenPayPal);
-            SetNewJournalDir = new RelayCommand(OnSetNewDir); 
+            SetNewJournalDir = new RelayCommand(OnSetNewDir);
 
             ToggleCommanderHidden = new RelayCommand(OnToggleCommanderHidden, (_) => SelectedCommander != null);
             ResetLastReadFile = new RelayCommand(OnResetLastFile, (_) => SelectedCommander != null);
@@ -45,7 +46,7 @@ namespace VoqooePlanner.ViewModels
         public static SettingsViewModel CreateViewModel(SettingsStore settingsStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, VoqooeDataStore voqooeDataStore)
         {
             var vm = new SettingsViewModel(settingsStore, voqooeDatabaseProvider, voqooeDataStore);
-            _=vm.LoadCommanders();
+            _ = vm.LoadCommanders();
             return vm;
         }
         private void OnToggleCommanderHidden(object? obj)
