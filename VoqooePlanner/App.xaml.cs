@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using ODUtils.Dialogs;
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using VoqooePlanner.DbContexts;
+using VoqooePlanner.HostExtentions;
 using VoqooePlanner.Services;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
@@ -48,34 +48,14 @@ namespace VoqooePlanner
             });
 
             _host = Host.CreateDefaultBuilder()
+                .AddDatabase(connectionString)
+                .AddViewModels()
+                .AddStores()
+                .AddServices()
                 .ConfigureServices((hostContext, services) =>
                 {
-                    //Database
-                    services.AddSingleton<IVoqooeDbContextFactory>(new VoqooeDbContextFactory(connectionString));
-                    services.AddSingleton<IVoqooeDatabaseProvider, VoqooeDatabaseProvider>();
-                    //VMs
-                    services.AddTransient(s => CreateVoqooeLisViewModel(s));
-                    services.AddTransient(s => CreateSettingViewModel(s));
-                    services.AddTransient<OrganicCheckListViewModel>();
-                    services.AddSingleton<LoaderViewModel>();
-                    services.AddSingleton<MainViewModel>();
-                    services.AddSingleton<NavigationViewModel>();
-                    //Navigations
-                    services.AddSingleton<Func<VoqooeListViewModel>>((s) => () => CreateVoqooeLisViewModel(s));
-                    services.AddSingleton<NavigationService<VoqooeListViewModel>>();
-                    services.AddSingleton<NavigationService<OrganicCheckListViewModel>>();
-                    AddViewModelNavigation<OrganicCheckListViewModel>(services);
-                    services.AddSingleton<Func<SettingsViewModel>>((s) => () => CreateSettingViewModel(s));
-                    //Services
-                    services.AddSingleton<NavigationService<SettingsViewModel>>();
-                    services.AddSingleton<SystemsUpdateService>();
-                    //Stores
-                    services.AddSingleton<VoqooeDataStore>();
-                    services.AddSingleton<NavigationStore>();
-                    services.AddSingleton<JournalWatcherStore>();
-                    services.AddSingleton<SettingsStore>();
                     //Windows
-                    services.AddSingleton<LoaderWindow>();
+                    services.AddTransient<LoaderWindow>();
                     services.AddSingleton(s => new MainWindow()
                     {
                         DataContext = s.GetRequiredService<MainViewModel>()

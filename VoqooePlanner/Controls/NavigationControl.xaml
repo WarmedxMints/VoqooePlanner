@@ -26,6 +26,8 @@
                  Command="{Binding NavigateToVoqooeList}">
             <Image Source="/Resources/Map-galaxy-map.png"
                    Stretch="Uniform"
+                   SnapsToDevicePixels="True"
+                   UseLayoutRounding="True"
                    Margin="5"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center" />
@@ -38,6 +40,8 @@
                 Grid.Row="1">
             <Image Source="/Resources/exobtn.png"
                    Stretch="Uniform"
+                   SnapsToDevicePixels="True"
+                   UseLayoutRounding="True"
                    Margin="2"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center" />
@@ -50,6 +54,8 @@
                 Grid.Row="3">
             <Image Source="/Resources/settings.png"
                    Stretch="Uniform"
+                   SnapsToDevicePixels="True"
+                   UseLayoutRounding="True"
                    Margin="10"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center" />
