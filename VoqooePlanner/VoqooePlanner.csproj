@@ -78,8 +78,4 @@
 	  <Resource Include="Resources\TransformaScript-Medium.ttf" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Helpers\" />
-	</ItemGroup>
-
 </Project>

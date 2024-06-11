@@ -14,6 +14,7 @@ namespace VoqooePlanner.Stores
         public NearBySystemsOptions NearBySystemsOptions { get; set; } = NearBySystemsOptions.ExcludeVisited | NearBySystemsOptions.ExcludeUserVisited | NearBySystemsOptions.IncludeUnvisitedELWs | NearBySystemsOptions.IncludeUnvisitedValue;
         public bool AutoSelectNextSystemInRoute { get; set; } = true;
         public bool AutoCopyNextSystemToClipboard { get; set; } = true;
+        public bool ContinuousRoute { get; set; } = false;
         public List<int> StarClassFilter { get; set; } = [-1];
         public WindowPositionViewModel WindowPosition { get; set; } = new();
 
@@ -27,6 +28,7 @@ namespace VoqooePlanner.Stores
                 NearBySystemsOptions            = SettingsDTO.SettingsDtoToEnum(settings.GetSettingDTO(nameof(NearBySystemsOptions)), NearBySystemsOptions);
                 AutoSelectNextSystemInRoute     = SettingsDTO.SettingsDtoToBool(settings.GetSettingDTO(nameof(AutoSelectNextSystemInRoute)), true);
                 AutoCopyNextSystemToClipboard   = SettingsDTO.SettingsDtoToBool(settings.GetSettingDTO(nameof(AutoCopyNextSystemToClipboard)), true);
+                ContinuousRoute                 = SettingsDTO.SettingsDtoToBool(settings.GetSettingDTO(nameof(ContinuousRoute)), false);
                 StarClassFilter                 = SettingsDTO.SettingDtoToObject(settings.GetSettingDTO(nameof(StarClassFilter)), StarClassFilter);
                 WindowPosition                  = SettingsDTO.SettingDtoToObject(settings.GetSettingDTO(nameof(WindowPosition)), WindowPosition);
             }
@@ -45,6 +47,7 @@ namespace VoqooePlanner.Stores
                 SettingsDTO.EnumToSettingsDto(nameof(NearBySystemsOptions), NearBySystemsOptions),
                 SettingsDTO.BoolToSettingsDTO(nameof(AutoSelectNextSystemInRoute), AutoSelectNextSystemInRoute),
                 SettingsDTO.BoolToSettingsDTO(nameof(AutoCopyNextSystemToClipboard), AutoCopyNextSystemToClipboard),
+                SettingsDTO.BoolToSettingsDTO(nameof(ContinuousRoute), ContinuousRoute),
                 SettingsDTO.ObjectToDto(nameof(StarClassFilter), StarClassFilter),
                 SettingsDTO.ObjectToDto(nameof(WindowPosition), WindowPosition),
             };

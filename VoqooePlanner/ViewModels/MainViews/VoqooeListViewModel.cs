@@ -15,6 +15,7 @@ using ODUtils.Dialogs;
 using ODUtils.PathFinding;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.ViewModels.ModelViews;
+using VoqooePlanner.Extentions;
 
 namespace VoqooePlanner.ViewModels.MainViews
 {
@@ -28,9 +29,6 @@ namespace VoqooePlanner.ViewModels.MainViews
         private readonly SettingsStore settings;
         private readonly JournalWatcherStore journalWatcher;
         private readonly ObservableCollection<VoqooeSystemViewModel> voqooeSystems;
-        //private readonly List<RouteStopViewModel> Route;
-
-        //private RouteStopViewModel? voqooeDataStore.SelectedItem;
 
         private string readingFileText = "Scanning Bio Data";
         public string ReadingFileText { get => readingFileText; set { readingFileText = value; OnPropertyChanged(nameof(ReadingFileText)); } }
@@ -84,6 +82,24 @@ namespace VoqooePlanner.ViewModels.MainViews
             }
         }
 
+        public bool ContinuousRoute
+        {
+            get => settings.ContinuousRoute;
+            set
+            {
+                settings.ContinuousRoute = value;
+                if(value)
+                {
+                    CreateOneStopMap();
+                }
+                else
+                {                  
+                    SelectedItem = null;
+                }
+                OnPropertyChanged(nameof(ContinuousRoute));
+            }
+        }
+
         public bool AutoCopyNextSystem
         {
             get => settings.AutoCopyNextSystemToClipboard;
@@ -123,6 +139,7 @@ namespace VoqooePlanner.ViewModels.MainViews
         public Action? RefreshGrid;
         public EventHandler<RouteStopViewModel>? OnSeletedItemChanged;
         public EventHandler<string>? OnStringCopiedToClipboard;
+        public EventHandler? OnRouteCreated;
         public VoqooeListViewModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher)
         {
             this.voqooeDataStore = voqooeDataStore;
@@ -144,8 +161,8 @@ namespace VoqooePlanner.ViewModels.MainViews
             MapRight = new RelayCommand(OnMapRight, (_) => ModelGroup.Children.Count > 0);
             MapUp = new RelayCommand(OnMapUp, (_) => ModelGroup.Children.Count > 0);
             MapDown = new RelayCommand(OnMapDown, (_) => ModelGroup.Children.Count > 0);
-            GenerateRoute = new AsyncRelayCommand(OnGenerateRoute, () => voqooeSystems.Any() && !calculatingRoute);
-            ChangeSelectedItem = new RelayCommand<bool>(OnChangeSelectedItem, (_) => Route.Any());
+            GenerateRoute = new AsyncRelayCommand(OnGenerateRoute, () => !ContinuousRoute && voqooeSystems.Any() && !calculatingRoute);
+            ChangeSelectedItem = new RelayCommand<bool>(OnChangeSelectedItem, (_) => !ContinuousRoute && Route.Any());
             CopyStringToClipboard = new RelayCommand<string?>(OnCopyStringToClipboard);
             UpdateNearby = new RelayCommand(OnUpdateNearby);
         }
@@ -186,6 +203,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             OnPropertyChanged(nameof(AutoCopyNextSystem));
             OnPropertyChanged(nameof(AutoSelectNextSystem));
             OnPropertyChanged(nameof(SelectedStarClasses));
+            OnPropertyChanged(nameof(ContinuousRoute));
             
             IsLoading = !e;
 
@@ -200,6 +218,11 @@ namespace VoqooePlanner.ViewModels.MainViews
             var hub = voqooeDataStore.HubSystem ?? new VoqooeSystem(0, string.Empty, 0, 0, 0, false, false, 0, 0);
             var distance = SystemPosition.Distance(e?.Pos ?? new(), new() { X = hub.X, Y = hub.Y, Z = hub.Z });
             CurrentSystem = new(e ?? new(0, new(), "Unknown"), distance);
+
+            if(ContinuousRoute)
+            {
+                return;
+            }
 
             if (SelectedItem != null && e != null && AutoSelectNextSystem && e.Name == SelectedItem.Name)
             {
@@ -221,6 +244,12 @@ namespace VoqooePlanner.ViewModels.MainViews
             Task.Run(() => ret.LoadSphereDataCommand.Execute(null));
             if (voqooeDataStore.Ready)
             {
+                if (ret.Route.Count > 0)
+                {
+                    ret.CalcRouteDistance();
+                    ret.CreateMap();
+                    ret.ChangeRow(0, false);
+                }
                 ret.OnCurrentSystemChanged(null, voqooeDataStore.CurrentSystem);
             }
             return ret;
@@ -239,12 +268,10 @@ namespace VoqooePlanner.ViewModels.MainViews
                 }
                 OnPropertyChanged(nameof(VoqooeSystems));
 
-                if (Route.Count > 0)
+                if (ContinuousRoute)
                 {
-                    CreateMap();
-                    ChangeRow(0);
-                    OnPropertyChanged(nameof(Route));
-                    OnPropertyChanged(nameof(SelectedItem));
+                    CreateOneStopMap();
+                    return;
                 }
             });
         }
@@ -314,7 +341,19 @@ namespace VoqooePlanner.ViewModels.MainViews
             calculatingRoute = false;
         }
 
-        private void ChangeRow(int value)
+        private void CalcRouteDistance()
+        {
+            var distance = 0d;
+
+            foreach(var stop in Route)
+            {
+                distance += stop.Distance;
+            }
+
+            Distance = $"{distance:N2} ly";
+        }
+
+        private void ChangeRow(int value, bool copyToClipboard = true)
         {
             if (voqooeDataStore.SelectedItem == null)
             {
@@ -336,7 +375,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             var item = Route[newIndex];
             SelectedItem = item;
             ColourMap(newIndex);
-            if (AutoCopyNextSystem)
+            if (copyToClipboard && AutoCopyNextSystem)
             {
                 OnCopyStringToClipboard(SelectedItem.Name);
             }
@@ -370,6 +409,72 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         // The change in CameraR when you press + or -.
         private const double CameraDR = 5;
+
+        private void CreateOneStopMap()
+        {
+            var nextSystem = VoqooeSystems.FirstOrDefault();
+
+            if(CurrentSystem == null || nextSystem == null)
+            {
+                return;
+            }
+            Route.Clear();
+            SystemSpheres = [];
+            SystemLines = [];
+            Distance = string.Empty;
+
+            Model3DGroup gr = new();
+            gr.Children.Add(new AmbientLight());
+
+            var distance = SystemPosition.Distance(CurrentSystem.Pos, nextSystem.Pos.ToSystemPosition());
+
+            var arrowLength = Math.Min(distance / 2, 6);
+            //Axis arrows
+            var line3 = MeshGeneration.CreatBoxLine(new Position(0, -0.5, 0), new Position(0, arrowLength, 0), green, arrowLength / 8, true);
+            gr.Children.Add(line3);
+            line3 = MeshGeneration.CreatBoxLine(new Position(0.5, 0, 0), new Position(arrowLength, 0, 0), red, arrowLength / 8, true);
+            gr.Children.Add(line3);
+            line3 = MeshGeneration.CreatBoxLine(new Position(0, 0, -0.5), new Position(0, 0, -arrowLength), axisblue, arrowLength / 8, true);
+            gr.Children.Add(line3);
+
+            var centerPont = new Position(CurrentSystem.Pos.X, CurrentSystem.Pos.Y, CurrentSystem.Pos.Z);
+
+            var start = new Position(0,0,0);
+            //ED uses a Z+ system where as wpf seems to use a Z- so we need to flip it
+            start = start.FlipZ;
+            var sphere = MeshGeneration.CreateSphere(start, green, arrowLength / 4, 10, 10);
+            gr.Children.Add(sphere);
+
+            Position end = nextSystem.Pos - centerPont;
+            end =  end.FlipZ;
+            var line1 = MeshGeneration.CreatBoxLine(start, end, grey, arrowLength /8);
+            gr.Children.Add(line1);
+
+            var endSphere = MeshGeneration.CreateSphere(end, red, arrowLength / 4, 10, 10);
+            gr.Children.Add(endSphere);
+
+            CameraR = distance * 4;
+
+            //var direction = nextSystem.Pos.FlipZ - centerPont.FlipZ;
+            //var horizontalPlaneNormal = Position.Cross(direction, new(1,0,0));
+            //var vectorX = Position.ProjectOnPlane(new(0, 0, -1), horizontalPlaneNormal);
+            //var angleX = Position.SignedAngle(direction, vectorX, horizontalPlaneNormal);
+            //var verticalPlaneNormal = Position.Cross(direction, new(0,1,0));
+            //var vectorY = Position.ProjectOnPlane(new(0,0,-1), verticalPlaneNormal);
+            //var angleY = Position.SignedAngle(direction, vectorY, verticalPlaneNormal);
+
+            CameraTheta = Math3d.ConvertToRadians(70);// 3.14159;
+            CameraPhi = 0.5;
+            PositionCamera();
+            ModelGroup = gr;
+
+            SelectedItem = new RouteStopViewModel(nextSystem, CurrentSystem);
+
+            if(!isLoading && AutoCopyNextSystem)
+                OnCopyStringToClipboard(nextSystem.Name);
+
+            OnRouteCreated?.Invoke(this, EventArgs.Empty);
+        }
 
         private void CreateMap()
         {
@@ -434,6 +539,8 @@ namespace VoqooePlanner.ViewModels.MainViews
             CameraPhi = 0;
             PositionCamera();
             ModelGroup = gr;
+
+            OnRouteCreated?.Invoke(this, EventArgs.Empty);
         }
 
         private void ColourMap(int index)

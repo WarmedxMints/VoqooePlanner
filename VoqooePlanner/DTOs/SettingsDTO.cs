@@ -14,7 +14,7 @@ namespace VoqooePlanner.DTOs
             if (dto == null)
                 return defaulValue;
 
-            return dto.IntValue > 1 || defaulValue;
+            return dto.IntValue > 0 || defaulValue;
         }
 
         public static int SettingsDtoToInt(SettingsDTO? dto, int defaultValue = 0)

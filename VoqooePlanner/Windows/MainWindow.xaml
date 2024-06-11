@@ -10,6 +10,7 @@
                     xmlns:local="clr-namespace:VoqooePlanner"
                     mc:Ignorable="d"
                     Foreground="#FF49C2FF"
+                    Focusable="True"
                     WindowStartupLocation="CenterScreen"
                     Background="{StaticResource WindowBackground}"
                     Title="{Binding Title, Mode=OneTime}"

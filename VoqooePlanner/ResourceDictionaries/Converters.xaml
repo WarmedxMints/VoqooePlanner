@@ -4,7 +4,8 @@
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
     <odutilsConvertors:InvertableBooleanToVisibilityConverter x:Key="InvertableBoolToVis" />
     <odutilsConvertors:FlagsEnumValueConverter x:Key="EnumFlagConverter" />
-
+    <odutilsConvertors:InverseBooleanConverter x:Key="InverseBoolConverter" />
+    
     <Style x:Key="{x:Type MenuItem}"
            TargetType="{x:Type MenuItem}">
         <Setter Property="HorizontalContentAlignment"

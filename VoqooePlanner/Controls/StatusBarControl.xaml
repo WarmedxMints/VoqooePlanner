@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels.MainViews"
              xmlns:local="clr-namespace:VoqooePlanner.Controls"
              mc:Ignorable="d"
              FontFamily="{StaticResource Eurostile}"

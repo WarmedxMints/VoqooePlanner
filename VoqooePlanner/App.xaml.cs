@@ -22,7 +22,7 @@ namespace VoqooePlanner
     /// </summary>
     public partial class App : Application
     {
-        public static readonly Version AppVersion = new(1, 1);
+        public static readonly Version AppVersion = new(1, 1, 1);
 #if INSTALL
         public readonly static string BaseDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "VoqooePlanner");
 #else

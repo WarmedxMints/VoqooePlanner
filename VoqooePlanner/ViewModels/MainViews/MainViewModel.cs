@@ -90,7 +90,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             NavigateToOrganicView = new RelayCommand(OnNavigateToExoChecklist, (_) => CurrentViewModel is not OrganicCheckListViewModel && UiEnabled);
             ResetWindowPositionCommand = new RelayCommand(OnResetWindowPos);
 
-            Title = $"Voqooe Planner v{App.AppVersion.Major}.{App.AppVersion.Minor}";
+            Title = $"Voqooe Planner v{App.AppVersion.Major}.{App.AppVersion.Minor}.{App.AppVersion.Build}";
 
             systemsUpdateService.SetUpdateTimer(OnSystemsUpdate);
         }

@@ -28,7 +28,7 @@
                    Text="{Binding ElementName=Root, Path=Title}"
                    FontSize="22" />
         
-        <DataGrid x:Name="Content"
+        <DataGrid x:Name="OrganicScanGrid"
                   Grid.ColumnSpan="2"
                   Grid.Row="1"
                   AutoGenerateColumns="False"

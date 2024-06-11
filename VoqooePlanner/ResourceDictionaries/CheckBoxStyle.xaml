@@ -37,7 +37,7 @@
                                         Background="{DynamicResource PrimaryControlForeground}" />
                             </Border>
                         </BulletDecorator.Bullet>
-                        <ContentPresenter Margin="4,0,0,0"
+                        <ContentPresenter Margin="5,0,0,0"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"                                         
                                           RecognizesAccessKey="True" />
@@ -56,6 +56,11 @@
                         <Trigger Property="IsEnabled"
                                  Value="False">
                             <Setter Property="BorderBrush"
+                                    Value="{DynamicResource PrimaryDisabled}" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource PrimaryDisabled}" />
+                            <Setter TargetName="CheckMark"
+                                    Property="Background"
                                     Value="{DynamicResource PrimaryDisabled}" />
                         </Trigger>
                     </ControlTemplate.Triggers>

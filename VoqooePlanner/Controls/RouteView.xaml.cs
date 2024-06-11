@@ -21,8 +21,13 @@ namespace VoqooePlanner.Controls
             if (DataContext is VoqooeListViewModel model)
             {
                 model.OnStringCopiedToClipboard += OnStringCopiedToClipboard;
+                model.OnRouteCreated += OnRouteCreated;
             }
-            Focus();
+        }
+
+        private void OnRouteCreated(object? sender, EventArgs e)
+        {
+            this.Focus();
         }
 
         private void RouteView_Unloaded(object sender, RoutedEventArgs e)
@@ -30,6 +35,7 @@ namespace VoqooePlanner.Controls
             if (DataContext is VoqooeListViewModel model)
             {
                 model.OnStringCopiedToClipboard -= OnStringCopiedToClipboard;
+                model.OnRouteCreated -= OnRouteCreated;
             }
         }
 

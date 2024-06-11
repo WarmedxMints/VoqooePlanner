@@ -5,9 +5,9 @@
         <Setter Property="Background"
                 Value="{DynamicResource PrimaryControlBackground}" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PrimaryControlBorder}" />
+                Value="{DynamicResource PrimaryControlForeground}" />
         <Setter Property="BorderBrush"
-                Value="{DynamicResource PrimaryControlBorder}" />
+                Value="{DynamicResource PrimaryControlForeground}" />
         <Setter Property="BorderThickness"
                 Value="1" />
     </Style>

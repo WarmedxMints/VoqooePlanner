@@ -1,4 +1,5 @@
 ﻿using VoqooePlanner.DTOs;
+using VoqooePlanner.ViewModels.ModelViews;
 
 namespace VoqooePlanner.Models
 {
@@ -15,6 +16,14 @@ namespace VoqooePlanner.Models
             ContainsELW = dto.ContainsELW;
             StarType = dto.StarType;
             Value = dto.Value;
+        }
+
+        public VoqooeSystem(JournalSystemViewModel journalSystem)
+        {
+            Name = journalSystem.Name;
+            X = journalSystem.Pos.X;
+            Y = journalSystem.Pos.Y;
+            Z = journalSystem.Pos.Z;
         }
 
         public VoqooeSystem(long address, string name, double x, double y, double z, bool visited, bool containsELW, int starType, int value)

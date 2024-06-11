@@ -33,7 +33,6 @@ namespace VoqooePlanner.Controls
             DependencyProperty.Register("Species", typeof(List<OrganicScanDetailsViewModel>), typeof(OrganicScanDeatilsViewControl), new PropertyMetadata());
 
 
-
         public OrganicScanDeatilsViewControl()
         {
             InitializeComponent();
