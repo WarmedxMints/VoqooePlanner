@@ -9,7 +9,6 @@
              xmlns:System="clr-namespace:System;assembly=mscorlib"
              xmlns:journal="clr-namespace:EliteJournalReader;assembly=EliteJournalReader"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance Type=vmodels:VoqooeListViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <ObjectDataProvider x:Key="StarTypes"
@@ -24,7 +23,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="10" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <GroupBox Header="Current System"
@@ -115,7 +114,6 @@
 
         <GroupBox Grid.Column="2"
                   Header="System List Options"
-                  Width="Auto"
                   BorderThickness="0.5"
                   Margin="0,0,0,10"
                   Padding="10,5">

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using ODUtils.IO;
+using System.ComponentModel.DataAnnotations;
 namespace VoqooePlanner.DTOs
 {
     public class SettingsDTO
@@ -41,7 +43,7 @@ namespace VoqooePlanner.DTOs
             return dto.DoubleValue ?? defaultValue;
         }
 
-        public static T SettingDtoToObject<T>(SettingsDTO? dto, T defaultValue)
+        public static T SettingDtoToJson<T>(SettingsDTO? dto, T defaultValue)
         {
             if(dto == null) 
                 return defaultValue;
@@ -50,6 +52,14 @@ namespace VoqooePlanner.DTOs
                 return defaultValue;
 
             return ODUtils.IO.Json.DeserialiseJsonFromString<T>(dto.StringValue) ?? defaultValue;
+        }
+
+        public static Tenum SettingDtoToEnum<Tenum>(SettingsDTO? dto, Tenum defaultVale) where Tenum : struct
+        {
+            if (dto == null)
+                return defaultVale;
+
+            return dto.IntValue is null ? defaultVale : (Tenum)(object)dto.IntValue;
         }
 
         public static SettingsDTO IntToSettingsDTO(string propertyName, int intVale)
@@ -88,7 +98,7 @@ namespace VoqooePlanner.DTOs
             };
         }
 
-        public static SettingsDTO ObjectToDto<T>(string propertyName, T objectToAdd)
+        public static SettingsDTO ObjectToJsonStringDto<T>(string propertyName, T objectToAdd)
         {
             if (objectToAdd is null)
                 return new SettingsDTO()
@@ -102,6 +112,15 @@ namespace VoqooePlanner.DTOs
                 Id = propertyName,
                 StringValue = json
             };
+        }
+
+        public static SettingsDTO SettingDtoToEnum<Tenum>(string propertyName, Tenum objectToAdd) where Tenum : struct
+        {
+              return new SettingsDTO()
+              {
+                  Id = propertyName,
+                  IntValue = (int)(object)objectToAdd
+              };
         }
     }
 }

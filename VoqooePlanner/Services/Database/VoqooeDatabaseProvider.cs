@@ -1,5 +1,6 @@
 ﻿using EliteJournalReader;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ODUtils.Dialogs;
 using VoqooePlanner.DbContexts;
 using VoqooePlanner.DTOs;
@@ -36,9 +37,9 @@ namespace VoqooePlanner.Services.Database
 
                 return ret;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                _= ODMessageBox.Show(null, "Error Updating Voqooe Systems", ex.Message);
+                _ = ODMessageBox.Show(null, "Error Updating Voqooe Systems", ex.Message);
                 return 0;
             }
         }
@@ -51,16 +52,16 @@ namespace VoqooePlanner.Services.Database
 
             var system = context.Systems.Include(x => x.CommanderVisits).FirstOrDefault(x => x.Address == voqooeSystem.Address);
 
-            if(system == null) 
+            if (system == null)
             {
                 UpdateVoqooeSystem(voqooeSystem);
                 system = context.Systems.Include(x => x.CommanderVisits).FirstOrDefault(x => x.Address == voqooeSystem.Address);
-                if(system == null ) 
+                if (system == null)
                 {
                     return;
                 }
             }
-            if(system.CommanderVisits.Contains(cmdr) == false)
+            if (system.CommanderVisits.Contains(cmdr) == false)
             {
                 system.CommanderVisits.Add(cmdr);
                 context.SaveChanges();
@@ -96,7 +97,7 @@ namespace VoqooePlanner.Services.Database
 
                 context.SaveChanges();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _ = ODMessageBox.Show(null, "Error Updating CMDR System Visits", ex.Message);
             }
@@ -122,7 +123,7 @@ namespace VoqooePlanner.Services.Database
                 .WhenMatched((matched, newSystem) => new VoqooeSystemDTO()
                 {
                     Visited = newSystem.Visited,
-                    StarType = newSystem.StarType, 
+                    StarType = newSystem.StarType,
                 })
                 .Run();
         }
@@ -140,7 +141,7 @@ namespace VoqooePlanner.Services.Database
 
             VoqooeSystem? ret = null;
             var dto = context.Systems.FirstOrDefault(x => x.Name == name);
-            if(dto != null) 
+            if (dto != null)
             {
                 ret = new(dto);
             }
@@ -239,7 +240,7 @@ namespace VoqooePlanner.Services.Database
 
             var ret = await context.JournalEntries
                 .Where(x => x.CommanderID == cmdrId)
-                .OrderBy(x => x.Filename)
+                .OrderBy(x => x.TimeStamp)
                 .ThenBy(x => x.Offset)
                 .Select(x => new JournalEntry(
                     x.Filename,
@@ -259,7 +260,7 @@ namespace VoqooePlanner.Services.Database
 
             var ret = await context.JournalEntries
                 .EventTypeCompare(cmdrId, types)
-                .OrderBy(x => x.Filename)
+                .OrderBy(x => x.TimeStamp)
                 .ThenBy(x => x.Offset)
                 .Select(x => new JournalEntry(
                     x.Filename,
@@ -281,10 +282,11 @@ namespace VoqooePlanner.Services.Database
                 .Select(x => new JournalEntryDTO()
                 {
                     CommanderID = x.CommanderID,
-                    EventData = x.OriginalEvent?.ToString(Newtonsoft.Json.Formatting.None) ?? string.Empty,
+                    EventData = x.OriginalEvent?.ToString(Formatting.None) ?? string.Empty,
                     EventTypeId = (int)x.EventType,
                     Filename = x.Filename,
-                    Offset = x.Offset
+                    Offset = x.Offset,
+                    TimeStamp = x.TimeStamp,
                 }
                 );
 
@@ -323,6 +325,17 @@ namespace VoqooePlanner.Services.Database
                 Upsert(settings)
                 .On(x => x.Id)
                 .Run();
+        }
+
+        public async Task ResetDataBaseAsync()
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            await context.JournalCommanders.ExecuteDeleteAsync();
+            await context.JournalEntries.ExecuteDeleteAsync();
+            await context.Systems.Include(x => x.CommanderVisits)
+                .ForEachAsync(x => x.CommanderVisits = []);
+            await context.SaveChangesAsync();
         }
         #endregion
     }

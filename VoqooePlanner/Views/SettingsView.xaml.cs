@@ -12,10 +12,5 @@ namespace VoqooePlanner.Views
         {
             InitializeComponent();
         }
-
-        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            ODUtils.Helpers.OperatingSystem.OpenUrl(e.Uri.AbsoluteUri);
-        }
     }
 }

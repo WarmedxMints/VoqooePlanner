@@ -7,10 +7,48 @@
              xmlns:controls="clr-namespace:VoqooePlanner.Controls"
              xmlns:odControls="clr-namespace:ODUtils.Controls;assembly=ODUtils"
              xmlns:vmodel="clr-namespace:VoqooePlanner.ViewModels.MainViews"
+             xmlns:models="clr-namespace:VoqooePlanner.Models"
              d:DataContext="{d:DesignInstance vmodel:OrganicCheckListViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
+    <UserControl.Resources>
+        <DataTemplate x:Key="LoadingSpinner">
+            <odControls:LoadingSpinner HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+        </DataTemplate>
+        <DataTemplate x:Key="CheckList">
+            <controls:OrganicChecklistControl />
+        </DataTemplate>
+
+        <DataTemplate x:Key="UnSoldListControl">
+            <controls:OrganicToSellList />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vmodel:OrganicCheckListViewModel}">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate"
+                                Value="{StaticResource LoadingSpinner}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentState}"
+                                         Value="CheckList">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource CheckList}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentState}"
+                                         Value="UnSoldList">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource UnSoldListControl}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
+
+    </UserControl.Resources>
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
@@ -18,69 +56,44 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Odyssey Exobiologist Checklist" 
-                       FontSize="24"
-                       FontWeight="Medium"
-                       Margin="10,0"/>
+            <Grid Background="{DynamicResource PrimaryControlBackground}">
 
-            <TextBlock Text="{Binding OrganicScanData.TotalCount}"
-                       FontSize="24"
-                       FontWeight="Medium"
-                       Visibility="{Binding IsLoading, Converter={StaticResource InvertableBoolToVis}, ConverterParameter=Normal}"
-                       HorizontalAlignment="Right"
-                       Margin="10,0" />
-            <odControls:LoadingSpinner HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Visibility="{Binding IsLoading, Converter={StaticResource InvertableBoolToVis}, ConverterParameter=Inverted}"
-                                       Grid.Row="1" />
-            <ScrollViewer x:Name="MainScrollBar"
-                          Grid.Row="1"
-                          Visibility="{Binding IsLoading, Converter={StaticResource InvertableBoolToVis}, ConverterParameter=Normal}">  
-                <WrapPanel x:Name="Panels"
-                           Visibility="{Binding IsLoading, Converter={StaticResource InvertableBoolToVis}, ConverterParameter=Normal}"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Top"
-                           Orientation="Horizontal"
-                           PreviewMouseWheel="Panels_PreviewMouseWheel"
-                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                           ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                    <WrapPanel.Children>
-                        <controls:OrganicScanDeatilsViewControl Title="Aleoida"
-                                                                Species="{Binding OrganicScanData.Aleoida}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Bacterium"
-                                                                Species="{Binding OrganicScanData.Bacterium}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Cactoida"
-                                                                Species="{Binding OrganicScanData.Cactoida}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Clypeus"
-                                                                Species="{Binding OrganicScanData.Clypeus}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Concha"
-                                                                Species="{Binding OrganicScanData.Concha}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Electricae"
-                                                                Species="{Binding OrganicScanData.Electricae}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Fonticulua"
-                                                                Species="{Binding OrganicScanData.Fonticulua}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Frutexa"
-                                                                Species="{Binding OrganicScanData.Frutexa}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Fumerola"
-                                                                Species="{Binding OrganicScanData.Fumerola}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Fungoida"
-                                                                Species="{Binding OrganicScanData.Fungoida}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Osseus"
-                                                                Species="{Binding OrganicScanData.Osseus}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Recepta"
-                                                                Species="{Binding OrganicScanData.Recepta}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Stratum"
-                                                                Species="{Binding OrganicScanData.Stratum}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Tubus"
-                                                                Species="{Binding OrganicScanData.Tubus}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Tussock"
-                                                                Species="{Binding OrganicScanData.Tussock}" />
-                        <controls:OrganicScanDeatilsViewControl Title="Other"
-                                                                Visibility="{Binding OrganicScanData.OtherVisiblity}"
-                                                                Species="{Binding OrganicScanData.Other}" />
-                    </WrapPanel.Children>
-                </WrapPanel>
-            </ScrollViewer>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Exobiology"
+                               FontSize="24"
+                               FontWeight="Medium"
+                               Margin="10,0,30,0" />
+
+                    <Button Content="CheckList"
+                            FontSize="22"
+                            Command="{Binding SwitchToCheckList}"
+                            Style="{DynamicResource TabButton}"
+                            Width="150"/>
+
+                    <Button Content="Unsold"
+                            FontSize="22"
+                            Command="{Binding SwitchToUnSoldList}"
+                            Style="{DynamicResource TabButton}"
+                            Width="150" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding OrganicToSellCount}"
+                               FontSize="24"
+                               FontWeight="Medium"
+                               Visibility="{Binding IsLoading, Converter={StaticResource InvertableBoolToVis}, ConverterParameter=Normal}"
+                               HorizontalAlignment="Right"
+                               Margin="10,0" />
+                    <TextBlock Text="{Binding OrganicScanData.TotalCount}"
+                               FontSize="24"
+                               FontWeight="Medium"
+                               Visibility="{Binding IsLoading, Converter={StaticResource InvertableBoolToVis}, ConverterParameter=Normal}"
+                               HorizontalAlignment="Right"
+                               Margin="10,0" />
+                </StackPanel>
+            </Grid>
+            <ContentControl Content="{Binding }"
+                            Grid.Row="1" />
         </Grid>
     </Grid>
 </UserControl>

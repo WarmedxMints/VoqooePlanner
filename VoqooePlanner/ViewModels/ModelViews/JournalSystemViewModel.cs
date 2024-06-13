@@ -1,5 +1,4 @@
 ﻿using EliteJournalReader;
-using ODUtils.Models;
 using VoqooePlanner.Models;
 
 namespace VoqooePlanner.ViewModels.ModelViews

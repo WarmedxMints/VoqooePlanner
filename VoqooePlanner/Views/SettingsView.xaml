@@ -1,367 +1,73 @@
 ﻿<UserControl x:Class="VoqooePlanner.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:VoqooePlanner.Controls"
-             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels"
+             xmlns:odControls="clr-namespace:ODUtils.Controls;assembly=ODUtils"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels.MainViews"
              xmlns:local="clr-namespace:VoqooePlanner.Views"
              d:DataContext="{d:DesignInstance Type=vmodels:SettingsViewModel}"
              mc:Ignorable="d"
              FontSize="18"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450"
+             d:DesignWidth="800">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
-
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
                 <RowDefinition />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <GroupBox Header="Commanders"                      
-                      BorderBrush="{DynamicResource PrimaryControlBorder}"
-                      BorderThickness="0.5">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="20" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+            <controls:CommanderSettingControl />
 
-                    <DataGrid ItemsSource="{Binding JournalCommaderViews}"
-                              SelectedValue="{Binding SelectedCommander}"
-                              SelectionMode="Single"
-                              IsHitTestVisible="True"
-                              GridLinesVisibility="All"
-                              Background="Transparent"
-                              HeadersVisibility="Column" 
-                              Style="{DynamicResource BaseDataGridStyle}">
-                        <DataGrid.Columns>
-                            
-                            <DataGridTextColumn Binding="{Binding Name}"
-                                                Width="SizeToCells"
-                                                MinWidth="150"
-                                                IsReadOnly="True"
-                                                Header="Name"
-                                                CellStyle="{DynamicResource CmdrSelectionCellLeft}"
-                                                HeaderStyle="{DynamicResource DataGridHeaderLeft}" />
-                            <DataGridTemplateColumn Width="*"
-                                                    IsReadOnly="True"
-                                                    Header="Journal Folder"
-                                                    CellStyle="{DynamicResource CmdrSelectionCellLeft}"
-                                                    HeaderStyle="{DynamicResource DataGridHeaderLeft}">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding JournalPath}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Width="280"
-                                                    IsReadOnly="True"
-                                                    Header="Last Journal File"
-                                                    CellStyle="{DynamicResource CmdrSelectionCellLeft}"
-                                                    HeaderStyle="{DynamicResource DataGridHeaderLeft}">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding LastFile}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Width="90"
-                                                    Header="Hidden"
-                                                    IsReadOnly="True"
-                                                    CellStyle="{DynamicResource CmdrSelectionCellCenter}"
-                                                    HeaderStyle="{DynamicResource DataGridHeaderCenter}">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <CheckBox VerticalAlignment="Center"
-                                                  HorizontalAlignment="Center"
-                                                  Width="20"
-                                                  IsHitTestVisible="False"
-                                                  Style="{DynamicResource CheckBoxStyle}"
-                                                  IsChecked="{Binding IsHidden}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
+            <controls:DataBaseSettingControl Grid.Row="1"
+                                             Margin="0,10"
+                                             HorizontalAlignment="Left"
+                                             Height="120"/>
+            <controls:LinksControl Grid.Row="3" />
+        </Grid>
 
-                    <Grid Grid.Row="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="50"/>
-                            <RowDefinition Height="50"/>
-                            <RowDefinition Height="50"/>
-                            <RowDefinition Height="50"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                  
-                        <TextBlock Text="{Binding SelectedCommander.Name}"
-                                   FontSize="24"/>
+        <controls:KeyBindControl  Grid.Column="1"
+                                  Margin="10" />
 
-                        <Button Content="Toggle Hidden"
-                                HorizontalAlignment="Center"
-                                Height="40"
-                                FontSize="18"
-                                Width="180"
-                                VerticalAlignment="Center"
-                                Grid.Row="0"
-                                Grid.Column="2"
-                                Command="{Binding ToggleCommanderHidden}"
-                                CommandParameter="http://www.goggle.com" />
-                        
-                        <TextBox Text="{Binding SelectedCommander.JournalPath}"
-                                 VerticalAlignment="Center"
-                                 BorderBrush="{DynamicResource PrimaryControlBorder}"
-                                 BorderThickness="1"
-                                 IsReadOnly="True"
-                                 Padding="5"
-                                 FontSize="16"
-                                 Height="40"
-                                 Grid.Row="1" />
-
-                        <Button Content="Change Logs Folder"
-                                HorizontalAlignment="Center"
-                                Height="40"
-                                FontSize="18"
-                                Width="180"
-                                VerticalAlignment="Center"
-                                Grid.Row="1"
-                                Grid.Column="2"
-                                Command="{Binding SetNewJournalDir}" />
-
-                        <TextBox Text="{Binding SelectedCommander.LastFile}"
-                                 VerticalAlignment="Center"
-                                 BorderBrush="{DynamicResource PrimaryControlBorder}"
-                                 BorderThickness="1"
-                                 IsReadOnly="True"
-                                 Padding="5"
-                                 FontSize="16"
-                                 Height="40"
-                                 Grid.Row="2" />
-
-                        <Button Content="Reset Last File"
-                                HorizontalAlignment="Center"
-                                Height="40"
-                                FontSize="18"
-                                Width="180"
-                                VerticalAlignment="Center"
-                                Grid.Row="2"
-                                Grid.Column="2"
-                                Command="{Binding ResetLastReadFile}" />
-
-                        <Button Content="Save Changes"
-                                HorizontalAlignment="Center"
-                                Height="40"
-                                FontSize="18"
-                                Width="180"
-                                VerticalAlignment="Center"
-                                Grid.Row="3"
-                                Grid.Column="2"
-                                Command="{Binding SaveCommanderChanges}" />
-                    </Grid>
-                </Grid>
-            </GroupBox>
-
-            <GroupBox Header="Links"
-                      BorderThickness="0.5"
-                      Padding="5"
-                      Grid.Row="2">
+        <Border Background="{DynamicResource WindowBackground75%}"
+                Visibility="{Binding ScanningWindowVisibility}"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource WindowBackground}"
+                    Width="Auto"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MinWidth="600"
+                    Height="Auto"
+                    CornerRadius="5"
+                    BorderThickness="2"
+                    BorderBrush="{DynamicResource NavigationBarBackground}">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="50" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="50" />
                     </Grid.RowDefinitions>
-
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5">
-                        <TextBlock Text="Github project page"
-                                   FontSize="18"
-                                   Margin="0,0,10,0" />
-                        <TextBlock>           
-                        <Hyperlink NavigateUri="https://github.com/WarmedxMints/VoqooePlanner"
-                                   FontSize="18"
-                                   Foreground="{DynamicResource PrimaryControlForeground}"
-                                   RequestNavigate="Hyperlink_RequestNavigate">
-                             Link
-                        </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                Grid.Row="1"
-                                Margin="0,5">
-                        <TextBlock Text="Button &amp; App Icons from edassets"
-                                   FontSize="18"
-                                   Margin="0,0,10,0" />
-                        <TextBlock>           
-                        <Hyperlink NavigateUri="https://edassets.org/#/"
-                                   FontSize="18"
-                                   Foreground="{DynamicResource PrimaryControlForeground}"
-                                   RequestNavigate="Hyperlink_RequestNavigate">
-                                Link
-                        </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5"
-                                Grid.Row="2">
-                        <TextBlock Text="Keyboard Icons from thoseawesomeguys.com"
-                                   FontSize="18"
-                                   Margin="0,0,10,0" />
-                        <TextBlock>           
-                        <Hyperlink NavigateUri="https://thoseawesomeguys.com/prompts/"
-                                   FontSize="18"
-                                   Foreground="{DynamicResource PrimaryControlForeground}"
-                                   RequestNavigate="Hyperlink_RequestNavigate">
-                                Link
-                        </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
+                    <TextBlock Text="{Binding DirectoryScanText}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding FileReadingText}"
+                               Grid.Row="2"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                    <odControls:LoadingSpinner Grid.Row="1"
+                                               Margin="0,20" />
                 </Grid>
-            </GroupBox>
-        </Grid>
-
-        <Grid Grid.Column="1"
-              Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <TextBlock Text="Key Bindings"
-                       FontSize="24"
-                       Margin="0,5"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-
-            <Grid Grid.Row="1"
-                  HorizontalAlignment="Stretch"
-                  VerticalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <controls:ImageWithText ImageURI="../Resources/Keyboard_Black_Insert.png"
-                                        Grid.Row="0"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Text="Zoom Map Out"
-                                        Height="100"
-                                        Width="200"
-                                        Margin="20,0,0,0" />
-
-                <controls:ImageWithText ImageURI="../Resources/Keyboard_Black_Home.png"
-                                        Grid.Row="0"
-                                        Grid.Column="1"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Text="Rotate Map Up"
-                                        Height="100"
-                                        Width="200"
-                                        Margin="20,0,0,0" />
-
-                <controls:ImageWithText ImageURI="../Resources/Keyboard_Black_Page_Up.png"
-                                        Grid.Row="0"
-                                        Grid.Column="2"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Text="Zoom Map In"
-                                        Height="100"
-                                        Width="200"
-                                        Margin="20,0,0,0" />
-
-                <controls:ImageWithText ImageURI="../Resources/Keyboard_Black_Del.png"
-                                        Grid.Row="1"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Text="Rotate Map Left"
-                                        Height="100"
-                                        Width="200"
-                                        Margin="20,0,0,0" />
-
-                <controls:ImageWithText ImageURI="../Resources/Keyboard_Black_End.png"
-                                        Grid.Row="1"
-                                        Grid.Column="1"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Text="Rotate Map Down"
-                                        Height="100"
-                                        Width="200"
-                                        Margin="20,0,0,0" />
-
-                <controls:ImageWithText ImageURI="../Resources/Keyboard_Black_Page_Down.png"
-                                        Grid.Row="1"
-                                        Grid.Column="2"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Text="Rotate Map Right"
-                                        Height="100"
-                                        Width="200"
-                                        Margin="20,0,0,0" />
-
-                <StackPanel Orientation="Horizontal"
-                            Grid.Row="2"
-                            Grid.ColumnSpan="3"
-                            HorizontalAlignment="Center">
-                    <Image Source="../Resources/Keyboard_Black_Ctrl.png"
-                           Height="100"
-                           Margin="20,0,0,0"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Stretch="Uniform" />
-                    <TextBlock Text="+"
-                               FontSize="40"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                    <Image Source="../Resources/Keyboard_Black_R.png"
-                           Height="90"
-                           HorizontalAlignment="Left"
-                           Stretch="Uniform" />
-
-                    <TextBlock Text="Reset Window Position"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-
-                <Button Width="250"
-                        Grid.Row="4"
-                        Grid.Column="1"
-                        Grid.ColumnSpan="2"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Bottom"
-                        Command="{Binding OpenPayPal}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Image Stretch="Uniform"
-                                   SnapsToDevicePixels="True"
-                                   Source="../Resources/paypal-donate-button.png" />
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-        </Grid>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>

@@ -17,6 +17,7 @@ namespace VoqooePlanner.Stores
         public bool ContinuousRoute { get; set; } = false;
         public List<int> StarClassFilter { get; set; } = [-1];
         public WindowPositionViewModel WindowPosition { get; set; } = new();
+        public ExoBiologyViewState BiologyViewState { get; set; } = ExoBiologyViewState.CheckList;
 
         public void LoadSettings()
         {
@@ -29,8 +30,9 @@ namespace VoqooePlanner.Stores
                 AutoSelectNextSystemInRoute     = SettingsDTO.SettingsDtoToBool(settings.GetSettingDTO(nameof(AutoSelectNextSystemInRoute)), true);
                 AutoCopyNextSystemToClipboard   = SettingsDTO.SettingsDtoToBool(settings.GetSettingDTO(nameof(AutoCopyNextSystemToClipboard)), true);
                 ContinuousRoute                 = SettingsDTO.SettingsDtoToBool(settings.GetSettingDTO(nameof(ContinuousRoute)), false);
-                StarClassFilter                 = SettingsDTO.SettingDtoToObject(settings.GetSettingDTO(nameof(StarClassFilter)), StarClassFilter);
-                WindowPosition                  = SettingsDTO.SettingDtoToObject(settings.GetSettingDTO(nameof(WindowPosition)), WindowPosition);
+                StarClassFilter                 = SettingsDTO.SettingDtoToJson(settings.GetSettingDTO(nameof(StarClassFilter)), StarClassFilter);
+                WindowPosition                  = SettingsDTO.SettingDtoToJson(settings.GetSettingDTO(nameof(WindowPosition)), WindowPosition);
+                BiologyViewState                = SettingsDTO.SettingDtoToEnum(settings.GetSettingDTO(nameof(BiologyViewState)), BiologyViewState);
             }
 
             if(WindowPosition.IsZero)
@@ -48,8 +50,9 @@ namespace VoqooePlanner.Stores
                 SettingsDTO.BoolToSettingsDTO(nameof(AutoSelectNextSystemInRoute), AutoSelectNextSystemInRoute),
                 SettingsDTO.BoolToSettingsDTO(nameof(AutoCopyNextSystemToClipboard), AutoCopyNextSystemToClipboard),
                 SettingsDTO.BoolToSettingsDTO(nameof(ContinuousRoute), ContinuousRoute),
-                SettingsDTO.ObjectToDto(nameof(StarClassFilter), StarClassFilter),
-                SettingsDTO.ObjectToDto(nameof(WindowPosition), WindowPosition),
+                SettingsDTO.ObjectToJsonStringDto(nameof(StarClassFilter), StarClassFilter),
+                SettingsDTO.ObjectToJsonStringDto(nameof(WindowPosition), WindowPosition),
+                SettingsDTO.EnumToSettingsDto(nameof(BiologyViewState), BiologyViewState),
             };
 
             voqooeDatabase.AddSettings(settings);

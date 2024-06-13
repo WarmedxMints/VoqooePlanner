@@ -11,5 +11,6 @@ namespace VoqooePlanner.Models
         public JournalTypeEnum EventType { get; } = eventTypeId;
         public JournalEventArgs EventData { get; } = eventData;
         public JObject? OriginalEvent { get; } = originalEvent;
+        public DateTime TimeStamp { get; } = eventData.Timestamp;
     }
 }

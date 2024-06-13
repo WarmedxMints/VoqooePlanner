@@ -14,6 +14,7 @@ using VoqooePlanner.Stores;
 using VoqooePlanner.ViewModels;
 using VoqooePlanner.ViewModels.MainViews;
 using VoqooePlanner.Windows;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace VoqooePlanner
 {
@@ -22,7 +23,7 @@ namespace VoqooePlanner
     /// </summary>
     public partial class App : Application
     {
-        public static readonly Version AppVersion = new(1, 1, 1);
+        public static readonly Version AppVersion = new(1, 1, 2);
 #if INSTALL
         public readonly static string BaseDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "VoqooePlanner");
 #else
@@ -90,27 +91,26 @@ namespace VoqooePlanner
             {
                 createDb = true;
             }
-#endif
-            var factory = _host.Services.GetRequiredService<IVoqooeDbContextFactory>();
-            using (var dbContext = factory.CreateDbContext())
-            {
-                dbContext.Database.Migrate();
-            }
 
-#if DEBUG
             if (createDb)
             {
 #endif
-            //Disable shutdown when the dialog closes
-            ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            var updates = _host.Services.GetRequiredService<LoaderWindow>();
-            updates.DataContext = _host.Services.GetRequiredService<LoaderViewModel>();
-            updates.ShowDialog();
-            ShutdownMode = ShutdownMode.OnMainWindowClose;
+                //Disable shutdown when the dialog closes
+                ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                var updateWindow = _host.Services.GetRequiredService<LoaderWindow>();
+                var model = _host.Services.GetRequiredService<LoaderViewModel>();
+                updateWindow.DataContext = model;
+                _ = updateWindow.ShowDialog();
+
+                if(model.Result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+
+                ShutdownMode = ShutdownMode.OnMainWindowClose;
 #if DEBUG
             }
 #endif
-
             var settingsStore = _host.Services.GetRequiredService<SettingsStore>();
             settingsStore.LoadSettings();
 
@@ -129,25 +129,6 @@ namespace VoqooePlanner
             settings.SaveSettings();
             _host.Dispose();
             base.OnExit(e);
-        }
-        private static VoqooeListViewModel CreateVoqooeLisViewModel(IServiceProvider services)
-        {
-            return VoqooeListViewModel.CreateModel(services.GetRequiredService<VoqooeDataStore>(),
-                services.GetRequiredService<IVoqooeDatabaseProvider>(),
-                services.GetRequiredService<SettingsStore>(),
-                services.GetRequiredService<JournalWatcherStore>());
-        }
-
-        private static SettingsViewModel CreateSettingViewModel(IServiceProvider services)
-        {
-            return SettingsViewModel.CreateViewModel(services.GetRequiredService<SettingsStore>(),
-                services.GetRequiredService<IVoqooeDatabaseProvider>(),
-                services.GetRequiredService<VoqooeDataStore>());
-        }
-        private static void AddViewModelNavigation<TViewModel>(IServiceCollection services) where TViewModel : ViewModelBase
-        {
-            services.AddSingleton<Func<TViewModel>>((s) => () => s.GetRequiredService<TViewModel>());
-            services.AddSingleton<NavigationService<TViewModel>>();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using EliteJournalReader;
 using EliteJournalReader.Events;
 using System.Collections.Concurrent;
+using System.Windows;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.ViewModels.ModelViews;
@@ -15,7 +16,7 @@ namespace VoqooePlanner.Stores
         private Lazy<Task> _initializeLazy;
 
         private readonly List<VoqooeSystem> _voqooeSystems;
-        private List<JournalCommander> _journalCommanders;
+        private readonly List<JournalCommander> _journalCommanders;
         private readonly ConcurrentDictionary<int, List<VoqooeSystem>> _systemVisitsToAdd = [];
 
         private readonly List<RouteStopViewModel> route = [];
@@ -41,17 +42,30 @@ namespace VoqooePlanner.Stores
                 OnCurrentSystemChanged?.Invoke(this, currentSystem);
             }
         }
+
+        public string CurrentBodyName { get; private set; } = string.Empty;
         public VoqooeSystem? HubSystem { get; private set; }
         public IEnumerable<VoqooeSystem> VoqooeSystems => _voqooeSystems;
         public IEnumerable<JournalCommander> JournalCommanders => _journalCommanders;
+
+        private readonly Dictionary<string, OrganicScanDetails> bioData;
+        public Dictionary<string, OrganicScanDetails> BioData => bioData;
+
+        private readonly List<OrganicDetails> _organicDataToSell;
+        public IEnumerable<OrganicDetails> OrganicDataToSell => _organicDataToSell;
+
         public bool Loaded { get; private set; }
         public bool Ready { get; private set; }
+
+        #region Events
         public EventHandler? OnCommandersUpdated;
         public EventHandler<JournalCommander>? OnCurrentCommanderChanged;
         public EventHandler<bool>? ReadyStatusChange;
         public EventHandler? OnSystemsUpdated;
         public EventHandler<JournalSystem?>? OnCurrentSystemChanged;
         public EventHandler<IEnumerable<OrganicScanDetails>>? OnOrganicDataChanged;
+        public EventHandler? OnOrganicToSellDataChanged;
+        #endregion
 
         public VoqooeDataStore(IVoqooeDatabaseProvider voqooeDatabaseProvider, JournalWatcherStore journalWatcherStore, SettingsStore settingsStore)
         {
@@ -62,6 +76,9 @@ namespace VoqooePlanner.Stores
             _initializeLazy = new Lazy<Task>(Initialise);
             _voqooeSystems = [];
             _journalCommanders = [];
+            bioData = [];
+            _organicDataToSell = [];
+
             journalWatcherStore.OnJournalEventRecieved += OnJournalEntry;
             journalWatcherStore.LiveStatusChange += OnLiveStatusChange;
         }
@@ -149,12 +166,25 @@ namespace VoqooePlanner.Stores
                         _systemVisitsToAdd[e.CommanderID].Add(voqooeSystem);
                     }
                     break;
+                case JournalTypeEnum.Touchdown:
+                    if (e.CommanderID == _currentCommander.Id
+                        && e.EventData is TouchdownEvent.TouchdownEventArgs touchdown)
+                    {
+                        CurrentBodyName = touchdown.Body;
+                    }
+                    break;
                 case JournalTypeEnum.ScanOrganic:
                     if (e.CommanderID == _currentCommander.Id
                         && e.EventData is ScanOrganicEvent.ScanOrganicEventArgs scanOrganic
                         && scanOrganic.ScanType.Equals("Analyse"))
                     {
                         _ = AddBioData(scanOrganic.Species, scanOrganic.Species_Localised, scanOrganic.Genus, scanOrganic.Genus_Localised, OrganicScanState.Analysed);
+                        _organicDataToSell.Add(new(scanOrganic.Variant_Localised ?? scanOrganic.Species_Localised, CurrentBodyName, scanOrganic.Species_Localised, scanOrganic.Species));
+
+                        if (Ready)
+                        {
+                            OnOrganicToSellDataChanged?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                     break;
                 case JournalTypeEnum.SellOrganicData:
@@ -162,9 +192,27 @@ namespace VoqooePlanner.Stores
                         && e.EventData is SellOrganicDataEvent.SellOrganicDataEventArgs sellOrganic)
                     {
                         var ret = new List<OrganicScanDetails>();
-                        foreach(var organic in sellOrganic.BioData)
+                        var itemsSold = false;
+                        foreach (var organic in sellOrganic.BioData)
                         {
                             ret.Add(AddBioData(organic.Species, organic.Species_Localised, organic.Genus, organic.Genus_Localised, OrganicScanState.Sold, false));
+
+                            var haveToSell = _organicDataToSell.FirstOrDefault(x => x.Species_Local.Equals(organic.Species_Localised, StringComparison.OrdinalIgnoreCase));
+
+                            if (haveToSell != null)
+                            {
+                                itemsSold = true;
+                                _organicDataToSell.Remove(haveToSell);
+                            }
+                        }
+
+                        if (Ready == false)
+                        {
+                            break;
+                        }
+                        if (itemsSold)
+                        {
+                            OnOrganicToSellDataChanged?.Invoke(this, EventArgs.Empty);
                         }
 
                         OnOrganicDataChanged?.Invoke(this, ret);
@@ -180,13 +228,22 @@ namespace VoqooePlanner.Stores
                         {
                             bioData.Remove(item.Key);
                         }
+
+                        _organicDataToSell.Clear();
+
+                        if (Ready == false)
+                        {
+                            break;
+                        }
+                        OnOrganicToSellDataChanged?.Invoke(this, EventArgs.Empty);
+                        OnOrganicDataChanged?.Invoke(this, BioData.Values);
                     }
                     break;
 
             }
         }
 
-        private OrganicScanDetails AddBioData(string species, string species_localised, string genus,string genus_localised, OrganicScanState scanState, bool fireEvent = true)
+        private OrganicScanDetails AddBioData(string species, string species_localised, string genus, string genus_localised, OrganicScanState scanState, bool fireEvent = true)
         {
             if (bioData.ContainsKey(species) == false)
             {
@@ -240,12 +297,23 @@ namespace VoqooePlanner.Stores
 
             _ = Task.Run(async () =>
             {
+                bioData.Clear();
+                _organicDataToSell.Clear();
                 Ready = false;
                 ReadyStatusChange?.Invoke(this, Ready);
                 var cmdr = GetSelectedComander(id);
                 await SetSelectedCommander(cmdr);
             });
 
+        }
+
+        public async Task ScanNewDirctory(string dir)
+        {
+            Ready = false;
+            ReadyStatusChange?.Invoke(this, Ready);
+
+            _currentCommander = new JournalCommander(0, string.Empty, dir, string.Empty, false);
+            await SetSelectedCommander(_currentCommander);
         }
 
         public void UpdateNearByOptions()
@@ -276,7 +344,9 @@ namespace VoqooePlanner.Stores
             journalWatcherStore.StopWatcher();
             _currentCommander = commander;
             _systemVisitsToAdd.Clear();
-            settingsStore.SelectedCommanderID = _currentCommander.Id;
+
+            if(_currentCommander.Id != 0)
+                settingsStore.SelectedCommanderID = _currentCommander.Id;
 
             if (Loaded)
             {
@@ -287,13 +357,10 @@ namespace VoqooePlanner.Stores
             journalWatcherStore.StartWatching(commander);
         }
 
-        private Dictionary<string, OrganicScanDetails> bioData = [];
-
-        public Dictionary<string, OrganicScanDetails> BioData => bioData;
         private async Task BuildBioData()
         {
             bioData.Clear();
-            var events = await voqooeDatabaseProvider.GetJournalEntriesOfType(_currentCommander.Id, [(int)JournalTypeEnum.ScanOrganic, (int)JournalTypeEnum.SellOrganicData, (int)JournalTypeEnum.Died ]);
+            var events = await voqooeDatabaseProvider.GetJournalEntriesOfType(_currentCommander.Id, [(int)JournalTypeEnum.ScanOrganic, (int)JournalTypeEnum.SellOrganicData, (int)JournalTypeEnum.Died, (int)JournalTypeEnum.Touchdown]);
 
             foreach (var e in events)
             {
@@ -303,8 +370,14 @@ namespace VoqooePlanner.Stores
 
         private JournalCommander GetSelectedComander(int id)
         {
-            var ret = _journalCommanders.FirstOrDefault(x => x.Id == id) ?? new JournalCommander(0, string.Empty, string.Empty, string.Empty, false);
-            return ret;
+            var ret = _journalCommanders.FirstOrDefault(x => x.Id == id);
+
+            if (ret == null && _journalCommanders.Any())
+            {
+                ret = _journalCommanders.FirstOrDefault();
+            }
+
+            return ret ?? new JournalCommander(0, string.Empty, string.Empty, string.Empty, false);
         }
 
         public async Task UpdateCommanders()

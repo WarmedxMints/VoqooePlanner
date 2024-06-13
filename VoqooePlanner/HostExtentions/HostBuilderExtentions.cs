@@ -83,7 +83,8 @@ namespace VoqooePlanner.HostExtentions
         {
             return SettingsViewModel.CreateViewModel(services.GetRequiredService<SettingsStore>(),
                 services.GetRequiredService<IVoqooeDatabaseProvider>(),
-                services.GetRequiredService<VoqooeDataStore>());
+                services.GetRequiredService<VoqooeDataStore>(),
+                services.GetRequiredService<JournalWatcherStore>());
         }
         private static void AddViewModelNavigation<TViewModel>(IServiceCollection services) where TViewModel : ViewModelBase
         {

@@ -40,7 +40,7 @@
         <GroupBox Header="Route"
                   Width="Auto"
                   BorderThickness="0.5"
-                  Padding="10,5">
+                  Padding="10,6">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

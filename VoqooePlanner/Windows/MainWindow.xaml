@@ -9,6 +9,7 @@
                     xmlns:controls="clr-namespace:VoqooePlanner.Controls"
                     xmlns:local="clr-namespace:VoqooePlanner"
                     mc:Ignorable="d"
+                    d:DataContext="{d:DesignInstance vmodels:MainViewModel}"
                     Foreground="#FF49C2FF"
                     Focusable="True"
                     WindowStartupLocation="CenterScreen"

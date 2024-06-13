@@ -1,0 +1,111 @@
+﻿<UserControl x:Class="VoqooePlanner.Controls.OrganicToSellList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:VoqooePlanner.Controls"
+             xmlns:vmodels="clr-namespace:VoqooePlanner.ViewModels.MainViews"
+             d:DataContext="{d:DesignInstance vmodels:OrganicCheckListViewModel}"
+             mc:Ignorable="d" 
+             FontSize="22"
+             Foreground="{DynamicResource PrimaryControlForeground}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        
+        <DataGrid ItemsSource="{Binding OrganicDetails}"
+                  CellStyle="{StaticResource DarkerCellLeft}"
+                  RowStyle="{DynamicResource NonHitTestVisileRow}"
+                  HeadersVisibility="Column"
+                  IsReadOnly="True"
+                  GridLinesVisibility="All"
+                  HorizontalAlignment="Left"
+                  CanUserAddRows="False"
+                  Foreground="{DynamicResource PrimaryControlForeground}"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Style="{StaticResource BaseDataGridStyle}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Name}"
+                                    MinWidth="350"
+                                    Header="Variant"/>
+                <DataGridTextColumn Binding="{Binding BodyName}"
+                                    MinWidth="350"
+                                    Header="Body"/>
+                <DataGridTextColumn Binding="{Binding ValueString}"
+                                    CellStyle="{DynamicResource DarkerCellRight}"
+                                    HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                    MinWidth="120"
+                                    Header="Value" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="40"/>
+            </Grid.RowDefinitions>
+        <DataGrid ItemsSource="{Binding OrganicDetailsCounts}"
+                  CellStyle="{StaticResource DarkerCellLeft}"
+                  RowStyle="{DynamicResource NonHitTestVisileRow}"
+                  HeadersVisibility="Column"
+                  IsReadOnly="True"
+                  Grid.Column="2"
+                  HorizontalAlignment="Left"
+                  GridLinesVisibility="All"
+                  CanUserAddRows="False"
+                  Foreground="{DynamicResource PrimaryControlForeground}"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Style="{StaticResource BaseDataGridStyle}">
+            <DataGrid.Columns>
+                    <DataGridTextColumn x:Name="Name"
+                        Binding="{Binding Name}"
+                                    MinWidth="300"
+                                    Header="Species" />
+                    <DataGridTextColumn x:Name="Count"
+                                        Binding="{Binding Count}"
+                                    CellStyle="{DynamicResource DarkerCellRight}"
+                                    HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                    Width="80"
+                                    Header="Count" />
+                    <DataGridTextColumn x:Name="Value"
+                                        Binding="{Binding Value}"
+                                    CellStyle="{DynamicResource DarkerCellRight}"
+                                    HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                    MinWidth="170"
+                                    Header="Value" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+            <StackPanel HorizontalAlignment="Left"
+                        Grid.Row="1"
+                        Orientation="Horizontal">
+                <Border Width="{Binding ElementName=Name,Path=ActualWidth}"
+                        BorderThickness="1,1,0,1"
+                        BorderBrush="Black">
+                    <TextBlock Margin="2,0,0,0"
+                               Text="Total" />
+                </Border>
+                <Border Width="{Binding ElementName=Count,Path=ActualWidth}"
+                        BorderThickness="1,1,0,1"
+                        BorderBrush="Black">
+                    <TextBlock Text="{Binding TotalBiosToSell}"
+                               HorizontalAlignment="Right"
+                               Margin="0,0,3,0" />
+                </Border>
+                <Border Width="{Binding ElementName=Value,Path=ActualWidth}"
+                        BorderThickness="1,1,1,1"
+                        BorderBrush="Black">
+                    <TextBlock Text="{Binding TotalBiosToSellValue}"
+                               HorizontalAlignment="Right"
+                               Margin="0,0,3,0" />
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

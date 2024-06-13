@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace VoqooePlanner.Models
+﻿namespace VoqooePlanner.Models
 {
     [Flags]
     public enum NearBySystemsOptions
@@ -17,5 +15,12 @@ namespace VoqooePlanner.Models
         None = 0,
         Analysed = 1,
         Sold = 2
+    }
+
+    public enum ExoBiologyViewState
+    {
+        Loading = -1,
+        CheckList = 0,
+        UnSoldList = 1
     }
 }

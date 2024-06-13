@@ -85,7 +85,7 @@
         <Setter Property="Background"
                 Value="Transparent" />
         <Setter Property="Foreground"
-                Value="#FFFF7B00" />
+                Value="{DynamicResource PrimaryControlForeground}" />
         <Setter Property="BorderBrush"
                 Value="Transparent" />
         <Setter Property="FocusVisualStyle"
@@ -449,8 +449,6 @@
                 Value="Center" />
         <Setter Property="Margin"
                 Value="0" />
-        <Setter Property="FontSize"
-                Value="18" />
         <Setter Property="Foreground"
                 Value="{StaticResource PrimaryControlForeground}" />
         <Setter Property="FontFamily"
@@ -466,8 +464,6 @@
                 Value="Center" />
         <Setter Property="Margin"
                 Value="5" />
-        <Setter Property="FontSize"
-                Value="16" />
         <Setter Property="Foreground"
                 Value="{StaticResource PrimaryControlForeground}" />
         <Setter Property="FontFamily"

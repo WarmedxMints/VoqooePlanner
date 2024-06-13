@@ -1,6 +1,5 @@
 ﻿using VoqooePlanner.DTOs;
 using VoqooePlanner.Models;
-using VoqooePlanner.ViewModels;
 
 namespace VoqooePlanner.Services.Database
 {
@@ -26,5 +25,7 @@ namespace VoqooePlanner.Services.Database
         public IEnumerable<SettingsDTO> GetAllSettings();
         public void AddSettings(IEnumerable<SettingsDTO> settings);
         public void AddSetting(SettingsDTO settings);
+
+        public Task ResetDataBaseAsync();
     }
 }
