@@ -31,19 +31,8 @@ namespace VoqooePlanner.ViewModels.MainViews
         public MessageBoxResult Result { get; private set; }
         public async Task CheckForUpdates(Window loaderWindow)
         {
-            await Task.Delay(1000);
-
-            LoadingText = "Migrating Database";
-
-            using (var dbContext = factory.CreateDbContext())
-            {
-                await dbContext.Database.MigrateAsync();
-            }
-
-            await Task.Delay(1000);
-
             LoadingText = "Checking For App Updates";
-
+            await Task.Delay(1000);
             var updateInfo = await Json.GetJsonFromUrlAndDeserialise<UpdateInfo>("https://raw.githubusercontent.com", "/WarmedxMints/ODUpdates/main/VoqooePlannerUpdate.json");
 
             if (updateInfo.Version > App.AppVersion)
@@ -78,7 +67,13 @@ namespace VoqooePlanner.ViewModels.MainViews
                 });
             }
 
+            LoadingText = "Migrating Database";
             await Task.Delay(1000);
+
+            using (var dbContext = factory.CreateDbContext())
+            {
+                await dbContext.Database.MigrateAsync();
+            }                      
 
             await systemsUpdateService.UpdateDataBaseSystems(OnUpdateTextChange);
 

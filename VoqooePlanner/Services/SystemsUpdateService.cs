@@ -41,7 +41,7 @@ namespace VoqooePlanner.Services
         public async Task UpdateDataBaseSystems(Action<string> updateTextMethod)
         {
             updateTextMethod.Invoke("Checking For Systems Update");
-            await Task.Delay(2000);
+            await Task.Delay(1000);
 
             var systems = await Json.GetJsonFromUrlAndDeserialise<IEnumerable<VoqooeSystemDTO>>("https://raw.githubusercontent.com", "/WarmedxMints/ODUpdates/main/VoqooeSystemsDTO.Json");
 
@@ -53,17 +53,17 @@ namespace VoqooePlanner.Services
                 {
                     var updateText = updatedCount > 1 ? "Systems..." : "System...";
                     updateTextMethod.Invoke($"Updated {updatedCount:N0} {updateText}");
-                    await Task.Delay(2000);
+                    await Task.Delay(1000);
                     return;
                 }
 
                 updateTextMethod.Invoke("No Update Required");
-                await Task.Delay(2000);
+                await Task.Delay(1000);
                 return;
             }
 
             updateTextMethod.Invoke($"Error Obtaining Lastest Systems File");
-            await Task.Delay(2000);
+            await Task.Delay(1000);
         }
     }
 }
