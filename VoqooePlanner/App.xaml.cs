@@ -1,20 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using ODUtils.Dialogs;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using VoqooePlanner.DbContexts;
 using VoqooePlanner.HostExtentions;
 using VoqooePlanner.Services;
-using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
-using VoqooePlanner.ViewModels;
 using VoqooePlanner.ViewModels.MainViews;
 using VoqooePlanner.Windows;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace VoqooePlanner
 {
@@ -23,7 +18,7 @@ namespace VoqooePlanner
     /// </summary>
     public partial class App : Application
     {
-        public static readonly Version AppVersion = new(1, 1, 2);
+        public static readonly Version AppVersion = new(1, 1, 2, 1);
 #if INSTALL
         public readonly static string BaseDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "VoqooePlanner");
 #else

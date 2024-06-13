@@ -1,7 +1,6 @@
 ﻿using ODUtils.Commands;
-using System.Windows.Controls;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
-using VoqooePlanner.DTOs;
 using VoqooePlanner.Models;
 using VoqooePlanner.Stores;
 using VoqooePlanner.ViewModels.ModelViews;
@@ -13,8 +12,8 @@ namespace VoqooePlanner.ViewModels.MainViews
         private OrganicScanDataMainView organicScanData = new();
         private readonly VoqooeDataStore voqooeData;
         private readonly SettingsStore settingsStore;
-        private List<OrganicDetailViewModel> organicDetails;
-        private List<OrganicDetailsCountViewModel> organicDetailsCount;
+        private ObservableCollection<OrganicDetailViewModel> organicDetails;
+        private ObservableCollection<OrganicDetailsCountViewModel> organicDetailsCount;
         private string organicTosellCount = string.Empty;
         private string totalBiosToSell = string.Empty;
         private string totalBiosToSellValue = string.Empty;
@@ -51,8 +50,8 @@ namespace VoqooePlanner.ViewModels.MainViews
             } 
         }
 
-        public IEnumerable<OrganicDetailViewModel> OrganicDetails => organicDetails;
-        public IEnumerable<OrganicDetailsCountViewModel> OrganicDetailsCounts => organicDetailsCount;
+        public ObservableCollection<OrganicDetailViewModel> OrganicDetails => organicDetails;
+        public ObservableCollection<OrganicDetailsCountViewModel> OrganicDetailsCounts => organicDetailsCount;
         public string OrganicToSellCount { get => organicTosellCount; private set { organicTosellCount = value; OnPropertyChanged(nameof(OrganicToSellCount)); } }
 
         public ICommand SwitchToCheckList { get; }
@@ -90,68 +89,76 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private void OnOrganicDataToSellChanged(object? sender, EventArgs e)
         {
-            organicDetails.Clear();
-
-            if (!voqooeData.OrganicDataToSell.Any())
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                OrganicToSellCount = "None to Sell";
+                organicDetails.Clear();
+
+                if (!voqooeData.OrganicDataToSell.Any())
+                {
+                    OrganicToSellCount = "None to Sell";
+                    organicDetailsCount.Clear();
+                    totalBiosToSell = string.Empty;
+                    totalBiosToSellValue = string.Empty;
+                    OnPropertyChanged(nameof(OrganicDetails));
+                    OnPropertyChanged(nameof(OrganicDetailsCounts));
+                    OnPropertyChanged(nameof(TotalBiosToSell));
+                    OnPropertyChanged(nameof(TotalBiosToSellValue));
+                    return;
+                }
+
+                var details = voqooeData.OrganicDataToSell.ToList();
+
+                details.Sort((x, y) =>
+                {
+                    return x.Name.CompareTo(y.Name);
+                });
+
+                foreach (var organic in details)
+                {
+                    organicDetails.Add(new(organic));
+                }
+
+                OrganicToSellCount = $"{organicDetails.Count} Samples to Sell";
+
+                var groups = organicDetails.GroupBy(x => x.Species_Local);
+
                 organicDetailsCount.Clear();
-                totalBiosToSell = string.Empty;
-                totalBiosToSellValue = string.Empty;
+                long total = 0;
+                long totalcount = 0;
+                foreach (var group in groups)
+                {
+                    var value = group.Sum(x => x.Value);
+                    var count = group.Count();
+                    total += value;
+                    totalcount += count;
+                    organicDetailsCount.Add(new(group.Key, count, value));
+                }
+
+                totalBiosToSell = totalcount.ToString("N0");
+                totalBiosToSellValue = total.ToString("N0");
+
                 OnPropertyChanged(nameof(OrganicDetails));
                 OnPropertyChanged(nameof(OrganicDetailsCounts));
                 OnPropertyChanged(nameof(TotalBiosToSell));
                 OnPropertyChanged(nameof(TotalBiosToSellValue));
-                return;
-            }
-
-            foreach(var organic in voqooeData.OrganicDataToSell)
-            {
-                organicDetails.Add(new(organic));
-            }
-
-            organicDetails.Sort((x, y) =>
-            {
-                return x.Name.CompareTo(y.Name);
-            });
-
-            OrganicToSellCount = $"{organicDetails.Count} Samples to Sell";
-
-            var groups = organicDetails.GroupBy(x => x.Species_Local);
-
-            organicDetailsCount.Clear();
-            long total = 0;
-            long totalcount = 0;
-            foreach (var group in groups)
-            {
-                var value = group.Sum(x => x.Value);
-                var count = group.Count();
-                total += value;
-                totalcount += count;
-                organicDetailsCount.Add(new(group.Key, count, value));
-            }
-
-            totalBiosToSell = totalcount.ToString("N0");
-            totalBiosToSellValue = total.ToString("N0");
-
-            OnPropertyChanged(nameof(OrganicDetails));
-            OnPropertyChanged(nameof(OrganicDetailsCounts));
-            OnPropertyChanged(nameof(TotalBiosToSell));
-            OnPropertyChanged(nameof(TotalBiosToSellValue));
+            });            
         }      
 
         private void OnReadyStateChange(object? sender, bool e)
         {
-            IsLoading = e;
-            if(!e)
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
+                IsLoading = e;
+                if (!e)
+                {
+                    OnPropertyChanged(nameof(CurrentState));
+                    return;
+                }
+                var organicData = voqooeData.BioData.Values.ToList();
+                OnOrganicDataChanged(null, organicData);
+                OnOrganicDataToSellChanged(null, EventArgs.Empty);
                 OnPropertyChanged(nameof(CurrentState));
-                return;
-            }
-            var organicData = voqooeData.BioData.Values.ToList();
-            OnOrganicDataChanged(null, organicData);
-            OnOrganicDataToSellChanged(null, EventArgs.Empty);
-            OnPropertyChanged(nameof(CurrentState));
+            });
         }
 
         public override void Dispose()
@@ -165,16 +172,22 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private void OnCommanderChanged(object? sender, JournalCommander e)
         {
-            OrganicScanData = new();
-            var organicData = voqooeData.BioData.Values.ToList();
-            OnOrganicDataChanged(null, organicData);
-            OnOrganicDataToSellChanged(null, EventArgs.Empty);
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                OrganicScanData = new();
+                var organicData = voqooeData.BioData.Values.ToList();
+                OnOrganicDataChanged(null, organicData);
+                OnOrganicDataToSellChanged(null, EventArgs.Empty);
+            });
         }
 
         private void OnOrganicDataChanged(object? sender, IEnumerable<OrganicScanDetails> e)
         {
-            OrganicScanData.AddScanDetatil(e);
-            OnPropertyChanged(nameof(OrganicScanData));
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                OrganicScanData.AddScanDetatil(e);
+                OnPropertyChanged(nameof(OrganicScanData));
+            });
         }
     }
 }
