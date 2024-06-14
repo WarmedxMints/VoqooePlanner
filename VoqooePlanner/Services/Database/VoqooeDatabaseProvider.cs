@@ -5,12 +5,14 @@ using ODUtils.Dialogs;
 using VoqooePlanner.DbContexts;
 using VoqooePlanner.DTOs;
 using VoqooePlanner.Models;
+using VoqooePlanner.Stores;
 
 namespace VoqooePlanner.Services.Database
 {
-    public class VoqooeDatabaseProvider(IVoqooeDbContextFactory voqooeDbContextFactory) : IVoqooeDatabaseProvider
+    public class VoqooeDatabaseProvider(IVoqooeDbContextFactory voqooeDbContextFactory, LoggerStore loggerStore) : IVoqooeDatabaseProvider
     {
         private readonly IVoqooeDbContextFactory voqooeDbContextFactory = voqooeDbContextFactory;
+        private readonly LoggerStore loggerStore = loggerStore;
 
         #region System Methods
         public async Task<int> UpdateVoqooeSystems(IEnumerable<VoqooeSystemDTO> voqooeSystems)
@@ -39,7 +41,8 @@ namespace VoqooePlanner.Services.Database
             }
             catch (Exception ex)
             {
-                _ = ODMessageBox.Show(null, "Error Updating Voqooe Systems", ex.Message);
+                loggerStore.LogError("DataBase Provider", ex);
+                _ = ODMessageBox.Show(null, "Error Updating Voqooe Systems", $"See VPLog.txt in {App.BaseDirectory} for details");
                 return 0;
             }
         }
@@ -85,8 +88,7 @@ namespace VoqooePlanner.Services.Database
 
                     if (known is null)
                     {
-                        UpdateVoqooeSystem(system);
-                        known = systems.First(x => x.Address == system.Address);
+                        known = UpdateVoqooeSystem(system);
                     }
 
                     if (known is not null && known.CommanderVisits.Contains(cmdr) == false)
@@ -99,11 +101,12 @@ namespace VoqooePlanner.Services.Database
             }
             catch (Exception ex)
             {
-                _ = ODMessageBox.Show(null, "Error Updating CMDR System Visits", ex.Message);
+                loggerStore.LogError("DataBase Provider", ex);
+                _ = ODMessageBox.Show(null, "Error Updating CMDR System Visits", $"See VPLog.txt in {App.BaseDirectory} for details");
             }
         }
 
-        public void UpdateVoqooeSystem(VoqooeSystem voqooeSystem)
+        public VoqooeSystemDTO UpdateVoqooeSystem(VoqooeSystem voqooeSystem)
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
 
@@ -126,6 +129,9 @@ namespace VoqooePlanner.Services.Database
                     StarType = newSystem.StarType,
                 })
                 .Run();
+
+            context.SaveChanges();
+            return dto;
         }
 
         public async Task<IEnumerable<VoqooeSystem>> GetAllVoqooeSystems()
@@ -296,6 +302,8 @@ namespace VoqooePlanner.Services.Database
                 .UpsertRange(entriesToAdd)
                 .On(e => new { e.Filename, e.Offset })
                 .Run();
+
+            context.SaveChanges();
         }
         #endregion
 
@@ -315,6 +323,8 @@ namespace VoqooePlanner.Services.Database
                 UpsertRange(settings)
                 .On(x => x.Id)
                 .Run();
+
+            context.SaveChanges();
         }
 
         public void AddSetting(SettingsDTO settings)
@@ -325,6 +335,8 @@ namespace VoqooePlanner.Services.Database
                 Upsert(settings)
                 .On(x => x.Id)
                 .Run();
+
+            context.SaveChanges();
         }
 
         public async Task ResetDataBaseAsync()

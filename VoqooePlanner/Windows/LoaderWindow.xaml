@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vms="clr-namespace:VoqooePlanner.ViewModels"
+        xmlns:vms="clr-namespace:VoqooePlanner.ViewModels.MainViews"
         xmlns:odutilsControls="clr-namespace:ODUtils.Controls;assembly=ODUtils"
         xmlns:local="clr-namespace:VoqooePlanner.Windows"
         mc:Ignorable="d"
@@ -26,7 +26,7 @@
         <Image Source="/Resources/CLB_Official_transparent.png"
                Margin="50"
                Stretch="Uniform"
-               Effect="{DynamicResource shadow}"
+               Effect="{StaticResource shadow}"
                x:Name="clblogo">
             <Image.Triggers>
                 <EventTrigger RoutedEvent="Image.Loaded">

@@ -1,5 +1,6 @@
 ﻿using EliteJournalReader;
 using EliteJournalReader.Events;
+using ODUtils.Dialogs;
 using System.Collections.Concurrent;
 using System.Windows;
 using VoqooePlanner.Models;
@@ -13,6 +14,7 @@ namespace VoqooePlanner.Stores
         private readonly IVoqooeDatabaseProvider voqooeDatabaseProvider;
         private readonly JournalWatcherStore journalWatcherStore;
         private readonly SettingsStore settingsStore;
+        private readonly LoggerStore loggerStore;
         private Lazy<Task> _initializeLazy;
 
         private readonly List<VoqooeSystem> _voqooeSystems;
@@ -67,12 +69,12 @@ namespace VoqooePlanner.Stores
         public EventHandler? OnOrganicToSellDataChanged;
         #endregion
 
-        public VoqooeDataStore(IVoqooeDatabaseProvider voqooeDatabaseProvider, JournalWatcherStore journalWatcherStore, SettingsStore settingsStore)
+        public VoqooeDataStore(IVoqooeDatabaseProvider voqooeDatabaseProvider, JournalWatcherStore journalWatcherStore, SettingsStore settingsStore, LoggerStore loggerStore)
         {
             this.voqooeDatabaseProvider = voqooeDatabaseProvider;
             this.journalWatcherStore = journalWatcherStore;
             this.settingsStore = settingsStore;
-
+            this.loggerStore = loggerStore;
             _initializeLazy = new Lazy<Task>(Initialise);
             _voqooeSystems = [];
             _journalCommanders = [];
@@ -85,22 +87,24 @@ namespace VoqooePlanner.Stores
 
         private void OnLiveStatusChange(object? sender, bool e)
         {
-            if (_systemVisitsToAdd.Count != 0)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                foreach (var system in _systemVisitsToAdd)
+                if (_systemVisitsToAdd.Count != 0)
                 {
-                    voqooeDatabaseProvider.AddCommanderVisits(system.Value, system.Key);
+                    foreach (var system in _systemVisitsToAdd)
+                    {
+                        voqooeDatabaseProvider.AddCommanderVisits(system.Value, system.Key);
+                    }
+                    _systemVisitsToAdd.Clear();
                 }
-                _systemVisitsToAdd.Clear();
-            }
 
-            _ = Task.Run(UpdateSystems);
+                _ = Task.Run(UpdateSystems);
 
-            OnCurrentSystemChanged?.Invoke(this, currentSystem);
-            OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
-            Ready = e && Loaded;
-            ReadyStatusChange?.Invoke(this, Ready);
-
+                OnCurrentSystemChanged?.Invoke(this, currentSystem);
+                OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
+                Ready = e && Loaded;
+                ReadyStatusChange?.Invoke(this, Ready);
+            });
         }
 
         private void OnJournalEntry(object? sender, JournalEntry e)
@@ -268,8 +272,10 @@ namespace VoqooePlanner.Stores
             {
                 await _initializeLazy.Value;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                loggerStore.LogError("Voqooe Datastore", ex);
+                _ = ODMessageBox.Show(null, "Error starting datastore", $"See VPLog.txt in {App.BaseDirectory} for details");
                 _initializeLazy = new Lazy<Task>(Initialise);
                 throw;
             }

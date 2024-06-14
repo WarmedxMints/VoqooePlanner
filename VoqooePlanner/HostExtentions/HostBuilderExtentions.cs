@@ -76,7 +76,8 @@ namespace VoqooePlanner.HostExtentions
             return VoqooeListViewModel.CreateModel(services.GetRequiredService<VoqooeDataStore>(),
                 services.GetRequiredService<IVoqooeDatabaseProvider>(),
                 services.GetRequiredService<SettingsStore>(),
-                services.GetRequiredService<JournalWatcherStore>());
+                services.GetRequiredService<JournalWatcherStore>(),
+                services.GetRequiredService<LoggerStore>());
         }
 
         private static SettingsViewModel CreateSettingViewModel(IServiceProvider services)

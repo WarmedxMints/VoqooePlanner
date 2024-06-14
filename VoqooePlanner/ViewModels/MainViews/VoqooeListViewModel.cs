@@ -140,7 +140,7 @@ namespace VoqooePlanner.ViewModels.MainViews
         public EventHandler<RouteStopViewModel>? OnSeletedItemChanged;
         public EventHandler<string>? OnStringCopiedToClipboard;
         public EventHandler? OnRouteCreated;
-        public VoqooeListViewModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher)
+        public VoqooeListViewModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher, LoggerStore loggerStore)
         {
             this.voqooeDataStore = voqooeDataStore;
             this.voqooeDatabaseProvider = voqooeDatabaseProvider;
@@ -148,7 +148,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             this.journalWatcher = journalWatcher;
             voqooeSystems = [];
 
-            LoadSphereDataCommand = new LoadVoqooeDataCommand(this, voqooeDataStore);
+            LoadSphereDataCommand = new LoadVoqooeDataCommand(this, voqooeDataStore, loggerStore);
 
             voqooeDataStore.OnSystemsUpdated += OnSystemsUpdated;
             voqooeDataStore.OnCurrentSystemChanged += OnCurrentSystemChanged;
@@ -238,9 +238,9 @@ namespace VoqooePlanner.ViewModels.MainViews
             UpdateSystemList();
         }
 
-        public static VoqooeListViewModel CreateModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher)
+        public static VoqooeListViewModel CreateModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher, LoggerStore loggerStore)
         {
-            var ret = new VoqooeListViewModel(voqooeDataStore, voqooeDatabaseProvider, settings, journalWatcher);
+            var ret = new VoqooeListViewModel(voqooeDataStore, voqooeDatabaseProvider, settings, journalWatcher, loggerStore);
             Task.Run(() => ret.LoadSphereDataCommand.Execute(null));
             if (voqooeDataStore.Ready)
             {

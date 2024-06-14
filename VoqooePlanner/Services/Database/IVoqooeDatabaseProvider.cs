@@ -6,7 +6,7 @@ namespace VoqooePlanner.Services.Database
     public interface IVoqooeDatabaseProvider
     {
         public Task<int> UpdateVoqooeSystems(IEnumerable<VoqooeSystemDTO> voqooeSystems);
-        public void UpdateVoqooeSystem(VoqooeSystem voqooeSystem);
+        public VoqooeSystemDTO UpdateVoqooeSystem(VoqooeSystem voqooeSystem);
         public Task<IEnumerable<VoqooeSystem>> GetAllVoqooeSystems();
         public void AddCommanderVisit(VoqooeSystem voqooeSystem, int cmdrId);
         public void AddCommanderVisits(IEnumerable<VoqooeSystem> voqooeSystems, int cmdrId);

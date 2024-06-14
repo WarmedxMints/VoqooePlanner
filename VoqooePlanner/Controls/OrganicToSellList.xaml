@@ -63,7 +63,7 @@
                   BorderThickness="0"
                   Style="{StaticResource BaseDataGridStyle}">
             <DataGrid.Columns>
-                    <DataGridTextColumn x:Name="Name"
+                    <DataGridTextColumn x:Name="BioName"
                         Binding="{Binding Name}"
                                     MinWidth="300"
                                     Header="Species" />
@@ -85,7 +85,7 @@
             <StackPanel HorizontalAlignment="Left"
                         Grid.Row="1"
                         Orientation="Horizontal">
-                <Border Width="{Binding ElementName=Name,Path=ActualWidth}"
+                <Border Width="{Binding ElementName=BioName,Path=ActualWidth}"
                         BorderThickness="1,1,0,1"
                         BorderBrush="Black">
                     <TextBlock Margin="2,0,0,0"

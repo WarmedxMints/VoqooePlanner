@@ -6,14 +6,15 @@ using System.Collections.Concurrent;
 using ODUtils.EliteDangerousHelpers;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using ODUtils.Dialogs;
 
 namespace VoqooePlanner.Stores
 {
-    public sealed class JournalWatcherStore(SettingsStore settingsStore, IVoqooeDatabaseProvider voqooeDatabaseProvider)
+    public sealed class JournalWatcherStore(SettingsStore settingsStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, LoggerStore loggerStore)
     {
         private readonly SettingsStore settingsStore = settingsStore;
         private readonly IVoqooeDatabaseProvider voqooeDatabaseProvider = voqooeDatabaseProvider;
-
+        private readonly LoggerStore loggerStore = loggerStore;
         private JournalWatcher? watcher;
         private JournalCommander? journalCommander;
         private JournalCommander? currentCommader;
@@ -32,7 +33,7 @@ namespace VoqooePlanner.Stores
             _messagesReceived.Clear();
             var path = cmdr.JournalPath;
 
-            if(string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
             {
                 path = JournalPath.GetJournalPath();
             }
@@ -45,66 +46,82 @@ namespace VoqooePlanner.Stores
 
         private void OnLiveStatusChange(object? sender, bool e)
         {
-            LiveStatusChange?.Invoke(this, e);
-        }
+            try
+            {
+                LiveStatusChange?.Invoke(this, e);
+            }
+            catch (Exception ex)
+            {
+                loggerStore.LogError("Journal Watcher - Live Status", ex);
+                _ = ODMessageBox.Show(null, "Error executing live status change event", $"See VPLog.txt in {App.BaseDirectory} for details");
+            }
+        } 
 
         private void Watcher_MessageReceived(object? sender, MessageReceivedEventArgs e)
         {
-            var tuple = Tuple.Create(e.Filename, e.Offset);
-
-            if (_messagesReceived.ContainsKey(tuple))
+            try
             {
-                return;
-            }
+                var tuple = Tuple.Create(e.Filename, e.Offset);
 
-            switch (e.EventType)
-            {
-                //If we start reading a new file, write event of previoud file to database
-                case JournalTypeEnum.Fileheader:
-                    if(watcher != null && watcher.IsLive == false)
-                        OnReadingNewFile?.Invoke(this, e.Filename);
+                if (_messagesReceived.ContainsKey(tuple))
+                {
+                    return;
+                }
 
-                    if (this.journalCommander != null)
-                    {
-                        Parallel.ForEach(_messagesReceived, (message) =>
+                switch (e.EventType)
+                {
+                    //If we start reading a new file, write event of previoud file to database
+                    case JournalTypeEnum.Fileheader:
+                        if (watcher != null && watcher.IsLive == false)
+                            OnReadingNewFile?.Invoke(this, e.Filename);
+
+                        if (this.journalCommander != null)
                         {
-                            message.Value.CommanderID = journalCommander.Id;
-                        });
-                       
-                        voqooeDatabaseProvider.AddJournalEntries(_messagesReceived.Values);
-                        _messagesReceived.Clear();
-                    }
-                    break;
-                case JournalTypeEnum.Commander:
-                    if (e.EventArgs is CommanderEvent.CommanderEventArgs arg)
-                    {
-                        var journalCommander = new JournalCommander(
-                                    -1,
-                                    arg.Name,
-                                    watcher?.Path,
-                                    Path.GetFileName(watcher?.LatestJournalFile ?? string.Empty),
-                                    false);
+                            Parallel.ForEach(_messagesReceived, (message) =>
+                            {
+                                message.Value.CommanderID = journalCommander.Id;
+                            });
 
-                        this.journalCommander = voqooeDatabaseProvider.AddCommander(journalCommander);
-                    }
-                    break;
-                default:
-                    break;
+                            voqooeDatabaseProvider.AddJournalEntries(_messagesReceived.Values);
+                            _messagesReceived.Clear();
+                        }
+                        break;
+                    case JournalTypeEnum.Commander:
+                        if (e.EventArgs is CommanderEvent.CommanderEventArgs arg)
+                        {
+                            var journalCommander = new JournalCommander(
+                                        -1,
+                                        arg.Name,
+                                        watcher?.Path,
+                                        Path.GetFileName(watcher?.LatestJournalFile ?? string.Empty),
+                                        false);
+
+                            this.journalCommander = voqooeDatabaseProvider.AddCommander(journalCommander);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                var jEvent = new JournalEntry(
+                    e.Filename,
+                    e.Offset,
+                    journalCommander?.Id ?? -1,
+                    e.EventType,
+                    e.EventArgs.Clone(),
+                    e.JObject.DeepClone() as JObject);
+
+                var added = _messagesReceived.TryAdd(tuple, jEvent);
+
+                if (added)
+                {
+                    OnJournalEventRecieved?.Invoke(this, jEvent);
+                }
             }
-
-            var jEvent = new JournalEntry(
-                e.Filename,
-                e.Offset,
-                journalCommander?.Id ?? -1,
-                e.EventType,
-                e.EventArgs.Clone(),
-                e.JObject.DeepClone() as JObject);
-
-            var added = _messagesReceived.TryAdd(tuple, jEvent);
-
-            if (added)
+            catch (Exception ex)
             {
-                OnJournalEventRecieved?.Invoke(this, jEvent);
+                loggerStore.LogError("Journal Watcher - Event parser", ex);
+                _ = ODMessageBox.Show(null, $"Error Parsing Event - {e.EventType}", $"See VPLog.txt in {App.BaseDirectory} for details");
             }
         }
 

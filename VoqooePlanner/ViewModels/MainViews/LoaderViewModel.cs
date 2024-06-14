@@ -8,14 +8,19 @@ using VoqooePlanner.DbContexts;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services;
 using VoqooePlanner.Services.Database;
+using VoqooePlanner.Stores;
 
 namespace VoqooePlanner.ViewModels.MainViews
 {
-    public sealed class LoaderViewModel(IVoqooeDatabaseProvider voqooeDatabaseProvider, SystemsUpdateService systemsUpdateService, IVoqooeDbContextFactory factory) : ViewModelBase
+    public sealed class LoaderViewModel(IVoqooeDatabaseProvider voqooeDatabaseProvider,
+                                        SystemsUpdateService systemsUpdateService,
+                                        IVoqooeDbContextFactory factory,
+                                        LoggerStore loggerStore) : ViewModelBase
     {
         private readonly IVoqooeDatabaseProvider voqooeDatabaseProvider = voqooeDatabaseProvider;
         private readonly SystemsUpdateService systemsUpdateService = systemsUpdateService;
         private readonly IVoqooeDbContextFactory factory = factory;
+        private readonly LoggerStore loggerStore = loggerStore;
         private string loadingText = "Loading...";
         public string LoadingText
         {
@@ -31,7 +36,7 @@ namespace VoqooePlanner.ViewModels.MainViews
         public MessageBoxResult Result { get; private set; }
         public async Task CheckForUpdates(Window loaderWindow)
         {
-            LoadingText = "Checking For App Updates";
+            OnUpdateTextChange("Checking For App Updates");
             await Task.Delay(1000);
             var updateInfo = await Json.GetJsonFromUrlAndDeserialise<UpdateInfo>("https://raw.githubusercontent.com", "/WarmedxMints/ODUpdates/main/VoqooePlannerUpdate.json");
 
@@ -67,19 +72,23 @@ namespace VoqooePlanner.ViewModels.MainViews
                 });
             }
 
-            LoadingText = "Migrating Database";
-            await Task.Delay(1000);
-
-            using (var dbContext = factory.CreateDbContext())
+            try
             {
+                OnUpdateTextChange("Migrating Database");
+                await Task.Delay(1000);
+
+                using var dbContext = factory.CreateDbContext();
                 await dbContext.Database.MigrateAsync();
-            }                      
 
-            await systemsUpdateService.UpdateDataBaseSystems(OnUpdateTextChange);
-
+                await systemsUpdateService.UpdateDataBaseSystems(OnUpdateTextChange);
+            }
+            catch (Exception ex)
+            {
+                loggerStore.LogError("Update Checker", ex);
+            }
             await Task.Delay(1000);
 
-            LoadingText = "Loading Application";
+            OnUpdateTextChange("Loading Application");
 
             await Task.Delay(1000);
 
@@ -88,7 +97,7 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private void OnUpdateTextChange(string obj)
         {
-            LoadingText = obj;
+            Application.Current.Dispatcher.Invoke(() => LoadingText = obj);
         }
     }
 }
