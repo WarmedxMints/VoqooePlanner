@@ -17,19 +17,15 @@ namespace VoqooePlanner.Stores
         private readonly LoggerStore loggerStore = loggerStore;
         private JournalWatcher? watcher;
         private JournalCommander? journalCommander;
-        private JournalCommander? currentCommader;
         private readonly ConcurrentDictionary<Tuple<string, long>, JournalEntry> _messagesReceived = [];
-
-        public EventHandler<VoqooeSystem>? OnCurrentSystemChanged;
-
+        private bool legacy;
         public EventHandler<bool>? LiveStatusChange;
         public EventHandler<JournalEntry>? OnJournalEventRecieved;
         public EventHandler<string>? OnReadingNewFile;
-
+        
         public void StartWatching(JournalCommander cmdr)
         {
             settingsStore.SelectedCommanderID = cmdr.Id;
-            currentCommader = cmdr;
             _messagesReceived.Clear();
             var path = cmdr.JournalPath;
 
@@ -38,10 +34,11 @@ namespace VoqooePlanner.Stores
                 path = JournalPath.GetJournalPath();
             }
 
-            watcher = new(path);
+            watcher = new(path, true);
             watcher.MessageReceived += Watcher_MessageReceived;
             watcher.LiveStatusChange += OnLiveStatusChange;
-            _ = watcher.StartWatchingFromFileOffset(cmdr.LastFile, 0);
+            _ = watcher.StartWatchingFromFileOffset(cmdr.LastFile, 0).ConfigureAwait(false);
+            OnReadingNewFile?.Invoke(this, path);
         }
 
         private void OnLiveStatusChange(object? sender, bool e)
@@ -75,6 +72,16 @@ namespace VoqooePlanner.Stores
                         if (watcher != null && watcher.IsLive == false)
                             OnReadingNewFile?.Invoke(this, e.Filename);
 
+                        //this isn't part 1 for a new log set, return
+                        if (e.EventArgs is FileheaderEvent.FileheaderEventArgs fileheader)
+                        {
+                            legacy = fileheader.gameversion.Major < 4;
+
+                            if (fileheader.part > 1)
+                                return;
+                        }
+
+                      
                         if (this.journalCommander != null)
                         {
                             Parallel.ForEach(_messagesReceived, (message) =>
@@ -83,15 +90,15 @@ namespace VoqooePlanner.Stores
                             });
 
                             voqooeDatabaseProvider.AddJournalEntries(_messagesReceived.Values);
-                            _messagesReceived.Clear();
                         }
+                        _messagesReceived.Clear();
                         break;
                     case JournalTypeEnum.Commander:
                         if (e.EventArgs is CommanderEvent.CommanderEventArgs arg)
                         {
                             var journalCommander = new JournalCommander(
                                         -1,
-                                        arg.Name,
+                                        legacy ? $"{arg.Name} (Legacy)" : arg.Name,
                                         watcher?.Path,
                                         Path.GetFileName(watcher?.LatestJournalFile ?? string.Empty),
                                         false);
@@ -113,7 +120,7 @@ namespace VoqooePlanner.Stores
 
                 var added = _messagesReceived.TryAdd(tuple, jEvent);
 
-                if (added)
+                if (added && watcher != null)
                 {
                     OnJournalEventRecieved?.Invoke(this, jEvent);
                 }

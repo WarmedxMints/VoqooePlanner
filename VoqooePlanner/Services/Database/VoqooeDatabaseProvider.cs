@@ -86,10 +86,7 @@ namespace VoqooePlanner.Services.Database
                 {
                     var known = systems.FirstOrDefault(x => x.Address == system.Address);
 
-                    if (known is null)
-                    {
-                        known = UpdateVoqooeSystem(system);
-                    }
+                    known ??= UpdateVoqooeSystem(system);
 
                     if (known is not null && known.CommanderVisits.Contains(cmdr) == false)
                     {
@@ -158,7 +155,9 @@ namespace VoqooePlanner.Services.Database
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
 
-            var cmdr = context.JournalCommanders.First(x => x.Id == id);
+            var cmdr = context.JournalCommanders.FirstOrDefault(x => x.Id == id);
+
+            if (cmdr == null) { return false; }
 
             var system = context.Systems.Include(x => x.CommanderVisits).FirstOrDefault(x => x.Address == address);
 
@@ -197,17 +196,28 @@ namespace VoqooePlanner.Services.Database
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
 
+            if(!context.JournalCommanders.Any())
+                return [];
+
             if (includeHidden)
             {
-                return await context.JournalCommanders
-                    .Select(x => new JournalCommander(x.Id, x.Name, x.JournalDir, x.LastFile, x.IsHidden))
+                var allCmdrs = await context.JournalCommanders
+                    .Select(x => new JournalCommander(x.Id, x.Name, x.JournalDir, x.LastFile, x.IsHidden))                    
                     .ToListAsync();
+
+                var reslt = allCmdrs.OrderBy(x => x.Name.Contains("(Legacy)"))
+                                    .ThenBy(x => x.Name);
+                return reslt;
             }
 
-            return await context.JournalCommanders
+            var cmdrs = await context.JournalCommanders
                 .Where(x => x.IsHidden == false)
                 .Select(x => new JournalCommander(x.Id, x.Name, x.JournalDir, x.LastFile, x.IsHidden))
-                    .ToListAsync();
+                .ToListAsync();
+
+            var ret = cmdrs.OrderBy(x => x.Name.Contains("(Legacy)"))
+                            .ThenBy(x => x.Name);
+            return ret;
         }
 
         public JournalCommander AddCommander(JournalCommander cmdr)
@@ -339,15 +349,21 @@ namespace VoqooePlanner.Services.Database
             context.SaveChanges();
         }
 
-        public async Task ResetDataBaseAsync()
+        public Task ResetDataBaseAsync()
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
 
-            await context.JournalCommanders.ExecuteDeleteAsync();
-            await context.JournalEntries.ExecuteDeleteAsync();
-            await context.Systems.Include(x => x.CommanderVisits)
-                .ForEachAsync(x => x.CommanderVisits = []);
-            await context.SaveChangesAsync();
+            context.Database.ExecuteSqlRawAsync(
+                "DELETE FROM CommanderVistedSystems;" +
+                "DELETE FROM JournalCommanders;" +
+                "DELETE FROM JournalEntries;" +
+                "DELETE FROM SQLITE_SEQUENCE WHERE name='CommanderVistedSystems';" +
+                "DELETE FROM SQLITE_SEQUENCE WHERE name='JournalCommanders';" +
+                "DELETE FROM SQLITE_SEQUENCE WHERE name='JournalEntries';");
+
+            context.SaveChangesAsync();
+
+            return Task.CompletedTask;
         }
         #endregion
     }

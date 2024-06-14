@@ -58,7 +58,7 @@ namespace VoqooePlanner.Stores
 
         public bool Loaded { get; private set; }
         public bool Ready { get; private set; }
-
+        private bool firstRun {  get; set; }
         #region Events
         public EventHandler? OnCommandersUpdated;
         public EventHandler<JournalCommander>? OnCurrentCommanderChanged;
@@ -87,9 +87,16 @@ namespace VoqooePlanner.Stores
 
         private void OnLiveStatusChange(object? sender, bool e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Ready = e && Loaded;
+            if (e && firstRun)
             {
-                if (_systemVisitsToAdd.Count != 0)
+                Task.Factory.StartNew(FinishFirstRun);
+                return;
+            }
+
+            Task.Run(async () =>
+            {
+                if (!_systemVisitsToAdd.IsEmpty)
                 {
                     foreach (var system in _systemVisitsToAdd)
                     {
@@ -97,12 +104,12 @@ namespace VoqooePlanner.Stores
                     }
                     _systemVisitsToAdd.Clear();
                 }
-
-                _ = Task.Run(UpdateSystems);
-
+                
+                await UpdateCommanders();
+                await UpdateSystems();
                 OnCurrentSystemChanged?.Invoke(this, currentSystem);
                 OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
-                Ready = e && Loaded;
+                
                 ReadyStatusChange?.Invoke(this, Ready);
             });
         }
@@ -111,11 +118,13 @@ namespace VoqooePlanner.Stores
         {
             if (e.EventType == JournalTypeEnum.Commander)
             {
-                var task = Task.Run(UpdateCommanders);
-                task.Wait();
-                return;
+                if (!firstRun && e.EventData is CommanderEvent.CommanderEventArgs commanderEvent
+                    && _journalCommanders.FirstOrDefault(x => x.Name == commanderEvent.Name) == null)
+                {
+                    _= UpdateCommanders();
+                    return;
+                }
             }
-
             ProcessJournalEntry(e);
         }
 
@@ -283,17 +292,39 @@ namespace VoqooePlanner.Stores
 
         private async Task Initialise()
         {
+#if DEBUG
+            //await voqooeDatabaseProvider.ResetDataBaseAsync();
+#endif
             HubSystem = voqooeDatabaseProvider.GetVoqooeSystemByName("Voqooe BI-H d11-864");
 
             await UpdateCommanders();
 
             Loaded = true;
 
+            //First run
+            if(_journalCommanders.Count == 0)
+            {
+                PerformFirstRun();
+                return;
+            }
             var cmdr = GetSelectedComander(settingsStore.SelectedCommanderID);
             await SetSelectedCommander(cmdr);
+        }
 
-            OnCommandersUpdated?.Invoke(this, EventArgs.Empty);
-            OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
+        public void PerformFirstRun()
+        {
+            firstRun = true;
+            journalWatcherStore.StopWatcher();
+            journalWatcherStore.StartWatching(new(0, "", "", "", false));
+        }
+
+        private async Task FinishFirstRun()
+        {
+            
+            await UpdateCommanders();
+            var cmdr = GetSelectedComander(0);
+            await SetSelectedCommander(cmdr);
+            firstRun = false;
         }
 
         public void ChangeCommander(int id)
@@ -378,7 +409,7 @@ namespace VoqooePlanner.Stores
         {
             var ret = _journalCommanders.FirstOrDefault(x => x.Id == id);
 
-            if (ret == null && _journalCommanders.Any())
+            if (ret == null && _journalCommanders.Count != 0)
             {
                 ret = _journalCommanders.FirstOrDefault();
             }

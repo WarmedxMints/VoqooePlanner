@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using ODUtils.Dialogs;
@@ -18,7 +19,7 @@ namespace VoqooePlanner
     /// </summary>
     public partial class App : Application
     {
-        public static readonly Version AppVersion = new(1, 1, 2, 2);
+        public static readonly Version AppVersion = new(1, 1, 2, 3);
 #if INSTALL
         public readonly static string BaseDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "VoqooePlanner");
 #else
@@ -78,17 +79,12 @@ namespace VoqooePlanner
             {
                 System.IO.Directory.CreateDirectory(BaseDirectory);
             }
-
             _host.Start();
 
 #if DEBUG
-            var createDb = false;
-            if (File.Exists(Path.Combine(BaseDirectory, database)) == false)
-            {
-                createDb = true;
-            }
+            var createDb = !File.Exists(Path.Combine(BaseDirectory, database));
 
-            if (createDb)
+            if (true)
             {
 #endif
                 //Disable shutdown when the dialog closes

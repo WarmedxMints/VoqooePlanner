@@ -93,7 +93,7 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private async Task OnResetDataBase()
         {
-            var msgBox = ODMessageBox.Show(null,
+            var msgBox = ODMessageBox.Show(System.Windows.Application.Current.MainWindow,
                                            "Reset Database",
                                            "This will reset all Commander data and scan the default directory\n\nAre you sure?",
                                            MessageBoxButton.YesNo);
@@ -103,12 +103,16 @@ namespace VoqooePlanner.ViewModels.MainViews
                 return;
             }
 
-            DirectoryScanText = $"Resetting Database";
             ScanningWindowVisibility = Visibility.Visible;
-            await voqooeDatabaseProvider.ResetDataBaseAsync();
+            DirectoryScanText = $"Resetting Database";
+            JournalCommaderViews.Clear();
+            SelectedCommander = null;
+            OnPropertyChanged(nameof(SelectedCommander));
+            OnPropertyChanged(nameof(JournalCommaderViews));
+            await Task.Factory.StartNew(voqooeDatabaseProvider.ResetDataBaseAsync);
             settingsStore.SelectedCommanderID = 0;
             DirectoryScanText = $"Scanning Default Directory";
-            await voqooeDataStore.ScanNewDirctory(string.Empty);
+            voqooeDataStore.PerformFirstRun();
         }
 
         private void OnReadingNewFile(object? sender, string e)
@@ -137,10 +141,10 @@ namespace VoqooePlanner.ViewModels.MainViews
             var result = folderDialog.ShowDialog();
 
             if (result == DialogResult.OK)
-            {           
+            {
                 DirectoryScanText = $"Scanning {folderDialog.SelectedPath}";
                 ScanningWindowVisibility = Visibility.Visible;
-                await voqooeDataStore.ScanNewDirctory(folderDialog.SelectedPath);               
+                await voqooeDataStore.ScanNewDirctory(folderDialog.SelectedPath);
             }
         }
 
@@ -169,11 +173,11 @@ namespace VoqooePlanner.ViewModels.MainViews
             if (SelectedCommander == null)
                 return;
 
-           
-            foreach(var cmdr in JournalCommaderViews)
+
+            foreach (var cmdr in JournalCommaderViews)
             {
                 voqooeDatabaseProvider.AddCommander(new(cmdr.Id, cmdr.Name, cmdr.JournalPath, cmdr.LastFile, cmdr.IsHidden));
-            }            
+            }
             await voqooeDataStore.UpdateCommanders();
 
             var currentCommanders = await voqooeDatabaseProvider.GetAllJournalCommanders(true);
@@ -212,7 +216,6 @@ namespace VoqooePlanner.ViewModels.MainViews
 
                 IsLoaded = true;
             });
-
 
         }
         private void OnSetNewDir(object? obj)

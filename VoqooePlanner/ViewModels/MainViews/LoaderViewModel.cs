@@ -7,17 +7,14 @@ using System.Windows;
 using VoqooePlanner.DbContexts;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services;
-using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
 
 namespace VoqooePlanner.ViewModels.MainViews
 {
-    public sealed class LoaderViewModel(IVoqooeDatabaseProvider voqooeDatabaseProvider,
-                                        SystemsUpdateService systemsUpdateService,
+    public sealed class LoaderViewModel(SystemsUpdateService systemsUpdateService,
                                         IVoqooeDbContextFactory factory,
                                         LoggerStore loggerStore) : ViewModelBase
     {
-        private readonly IVoqooeDatabaseProvider voqooeDatabaseProvider = voqooeDatabaseProvider;
         private readonly SystemsUpdateService systemsUpdateService = systemsUpdateService;
         private readonly IVoqooeDbContextFactory factory = factory;
         private readonly LoggerStore loggerStore = loggerStore;
