@@ -2,7 +2,7 @@
 using EliteJournalReader.Events;
 using ODUtils.Dialogs;
 using System.Collections.Concurrent;
-using System.Windows;
+using VoqooePlanner.EventArgs;
 using VoqooePlanner.Models;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.ViewModels.ModelViews;
@@ -20,7 +20,7 @@ namespace VoqooePlanner.Stores
         private readonly List<VoqooeSystem> _voqooeSystems;
         private readonly List<JournalCommander> _journalCommanders;
         private readonly ConcurrentDictionary<int, List<VoqooeSystem>> _systemVisitsToAdd = [];
-
+        private readonly ConcurrentDictionary<long, StarSystem> _voqooeCartoData = [];
         private readonly List<RouteStopViewModel> route = [];
 
         private RouteStopViewModel? selectedItem;
@@ -49,6 +49,7 @@ namespace VoqooePlanner.Stores
         public VoqooeSystem? HubSystem { get; private set; }
         public IEnumerable<VoqooeSystem> VoqooeSystems => _voqooeSystems;
         public IEnumerable<JournalCommander> JournalCommanders => _journalCommanders;
+        public IEnumerable<StarSystem> CartoSystems => _voqooeCartoData.Values;
 
         private readonly Dictionary<string, OrganicScanDetails> bioData;
         public Dictionary<string, OrganicScanDetails> BioData => bioData;
@@ -58,7 +59,7 @@ namespace VoqooePlanner.Stores
 
         public bool Loaded { get; private set; }
         public bool Ready { get; private set; }
-        private bool firstRun {  get; set; }
+        private bool FirstRun { get; set; }
         #region Events
         public EventHandler? OnCommandersUpdated;
         public EventHandler<JournalCommander>? OnCurrentCommanderChanged;
@@ -67,6 +68,7 @@ namespace VoqooePlanner.Stores
         public EventHandler<JournalSystem?>? OnCurrentSystemChanged;
         public EventHandler<IEnumerable<OrganicScanDetails>>? OnOrganicDataChanged;
         public EventHandler? OnOrganicToSellDataChanged;
+        public EventHandler<CartoDataUpdateArgs>? OnCartoDataUpdated;
         #endregion
 
         public VoqooeDataStore(IVoqooeDatabaseProvider voqooeDatabaseProvider, JournalWatcherStore journalWatcherStore, SettingsStore settingsStore, LoggerStore loggerStore)
@@ -88,12 +90,16 @@ namespace VoqooePlanner.Stores
         private void OnLiveStatusChange(object? sender, bool e)
         {
             Ready = e && Loaded;
-            if (e && firstRun)
+            if (e && FirstRun)
             {
                 Task.Factory.StartNew(FinishFirstRun);
                 return;
             }
-
+            if(e == false)
+            {
+                ReadyStatusChange?.Invoke(this, Ready);
+                return;
+            }
             Task.Run(async () =>
             {
                 if (!_systemVisitsToAdd.IsEmpty)
@@ -104,12 +110,12 @@ namespace VoqooePlanner.Stores
                     }
                     _systemVisitsToAdd.Clear();
                 }
-                
+
                 await UpdateCommanders();
                 await UpdateSystems();
                 OnCurrentSystemChanged?.Invoke(this, currentSystem);
                 OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
-                
+
                 ReadyStatusChange?.Invoke(this, Ready);
             });
         }
@@ -118,10 +124,10 @@ namespace VoqooePlanner.Stores
         {
             if (e.EventType == JournalTypeEnum.Commander)
             {
-                if (!firstRun && e.EventData is CommanderEvent.CommanderEventArgs commanderEvent
+                if (!FirstRun && e.EventData is CommanderEvent.CommanderEventArgs commanderEvent
                     && _journalCommanders.FirstOrDefault(x => x.Name == commanderEvent.Name) == null)
                 {
-                    _= UpdateCommanders();
+                    _ = UpdateCommanders();
                     return;
                 }
             }
@@ -139,10 +145,14 @@ namespace VoqooePlanner.Stores
                         if (e.CommanderID == _currentCommander.Id)
                         {
                             CurrentSystem = new(location.SystemAddress, location.StarPos.Copy(), location.StarSystem);
-
-
-                            if (Ready)
+                           
+                            if (location.StarSystem.StartsWith("Voqooe") && _voqooeCartoData.TryAdd(location.SystemAddress, new(location.SystemAddress, location.StarSystem, location.StarPos.Copy(), StarType.Unknown)))
                             {
+                                if(Ready)
+                                    OnCartoDataUpdated?.Invoke(this, new(location.SystemAddress, location.BodyID));
+                            }
+                            if (Ready)
+                            {                               
                                 _ = UpdateSystems().ConfigureAwait(false);
                             }
                         }
@@ -159,11 +169,16 @@ namespace VoqooePlanner.Stores
                                 Task.Run(UpdateSystems);
                             }
                         }
-                        if (fsdJump.StarSystem.StartsWith("Voqooe") == false)
+                        if (fsdJump.StarSystem.StartsWith("Voqooe", StringComparison.OrdinalIgnoreCase) == false)
                         {
                             break;
                         }
 
+                        if (_voqooeCartoData.TryAdd(fsdJump.SystemAddress, new(fsdJump.SystemAddress, fsdJump.StarSystem, fsdJump.StarPos.Copy(), StarType.Unknown)))
+                        {
+                            if (Ready)
+                                OnCartoDataUpdated?.Invoke(this, new(fsdJump.SystemAddress, fsdJump.BodyID));
+                        }
                         var voqooeSystem = new VoqooeSystem(fsdJump.SystemAddress, fsdJump.StarSystem, fsdJump.StarPos.X, fsdJump.StarPos.Y, fsdJump.StarPos.Z, true, false, 0, 0);
 
                         if (Ready)
@@ -177,6 +192,114 @@ namespace VoqooePlanner.Stores
                             break;
                         }
                         _systemVisitsToAdd[e.CommanderID].Add(voqooeSystem);
+                    }
+                    break;
+                case JournalTypeEnum.NavRoute:
+                    //This json can only be read when live as it is replaced each time a route is created
+                    if (Ready && e.CommanderID == _currentCommander.Id)
+                    {
+                        var evt = journalWatcherStore.ReadNavRouteJson(_currentCommander.Id);
+
+                        if (evt is null)
+                            break;
+
+                        var systemsToUpdate = new List<VoqooeSystem>();
+                        foreach (var system in evt.Route)
+                        {
+                            if (!system.StarSystem.StartsWith("Voqooe"))
+                            {
+                                break;
+                            }
+                            if (_voqooeCartoData.TryAdd(system.SystemAddress, new(system.SystemAddress, system.StarSystem, system.StarPos.Copy(), system.StarClass)))
+                            {
+                                //TODO AddUpdate Event
+                            }
+
+                            var voqooeSystem = new VoqooeSystem(system.SystemAddress, system.StarSystem, system.StarPos.X, system.StarPos.Y, system.StarPos.Z, false, false, (int)system.StarClass, 0);
+                            systemsToUpdate.Add(voqooeSystem);
+                        }
+
+                        if (systemsToUpdate.Count > 0)
+                        {
+                            voqooeDatabaseProvider.UpdateVoqooeSystems(systemsToUpdate);
+                        }
+                    }
+                    break;
+                case JournalTypeEnum.FSSDiscoveryScan:
+                    if (e.CommanderID == _currentCommander.Id
+                        && e.EventData is FSSDiscoveryScanEvent.FSSDiscoveryScanEventArgs fssScan)
+                    {
+                        if (!fssScan.SystemName.StartsWith("Voqooe"))
+                        {
+                            break;
+                        }
+
+                        if (_voqooeCartoData.TryGetValue(fssScan.SystemAddress, out var value))
+                        {
+                            if (value is null)
+                                break;
+
+                            value.BodyCount = fssScan.BodyCount;
+
+                            //TODO Fire system update event
+                        }
+                    }
+                    break;
+                case JournalTypeEnum.Scan:
+                    if (e.CommanderID == _currentCommander.Id
+                        && e.EventData is ScanEvent.ScanEventArgs scanEvt)
+                    {
+                        if (_voqooeCartoData.TryGetValue(scanEvt.SystemAddress, out var value))
+                        {
+                            if (value is null)
+                                break;
+
+                            value.AddBody(scanEvt);
+
+                            if (Ready)
+                                OnCartoDataUpdated?.Invoke(this, new(scanEvt.SystemAddress, scanEvt.BodyID));
+                        }
+                    }
+                    break;
+                case JournalTypeEnum.SAAScanComplete:
+                    if (e.CommanderID == _currentCommander.Id 
+                        && e.EventData is SAAScanCompleteEvent.SAAScanCompleteEventArgs saaScan)
+                    {
+                        if (_voqooeCartoData.TryGetValue(saaScan.SystemAddress, out var value))
+                        {
+                            if (value is null)
+                                break;
+
+                            value.UpdateBodyFromDSS(saaScan);
+
+                            //TODO Fire update event
+                        }
+                    }
+                    break;
+                case JournalTypeEnum.SellExplorationData:
+                    if(e.CommanderID == _currentCommander.Id
+                        && e.EventData is SellExplorationDataEvent.SellExplorationDataEventArgs sellCarto)
+                    {
+                        foreach (string system in sellCarto.Systems)
+                        {
+                            var known = _voqooeCartoData.FirstOrDefault(x => x.Value.Name.Equals(system, StringComparison.OrdinalIgnoreCase)).Value;
+
+                            if(known != null)
+                                _voqooeCartoData.TryRemove(known.Address, out var value);
+                        }
+                    }
+                    break;
+                case JournalTypeEnum.MultiSellExplorationData:
+                    if (e.CommanderID == _currentCommander.Id
+                       && e.EventData is MultiSellExplorationDataEvent.MultiSellExplorationDataEventArgs multiSellCarto)
+                    {
+                        foreach (var system in multiSellCarto.Discovered)
+                        {
+                            var known = _voqooeCartoData.FirstOrDefault(x => x.Value.Name.Equals(system.SystemName, StringComparison.OrdinalIgnoreCase)).Value;
+
+                            if (known != null)
+                                _voqooeCartoData.TryRemove(known.Address, out var value);
+                        }
                     }
                     break;
                 case JournalTypeEnum.Touchdown:
@@ -196,7 +319,7 @@ namespace VoqooePlanner.Stores
 
                         if (Ready)
                         {
-                            OnOrganicToSellDataChanged?.Invoke(this, EventArgs.Empty);
+                            OnOrganicToSellDataChanged?.Invoke(this, System.EventArgs.Empty);
                         }
                     }
                     break;
@@ -225,7 +348,7 @@ namespace VoqooePlanner.Stores
                         }
                         if (itemsSold)
                         {
-                            OnOrganicToSellDataChanged?.Invoke(this, EventArgs.Empty);
+                            OnOrganicToSellDataChanged?.Invoke(this, System.EventArgs.Empty);
                         }
 
                         OnOrganicDataChanged?.Invoke(this, ret);
@@ -248,7 +371,7 @@ namespace VoqooePlanner.Stores
                         {
                             break;
                         }
-                        OnOrganicToSellDataChanged?.Invoke(this, EventArgs.Empty);
+                        OnOrganicToSellDataChanged?.Invoke(this, System.EventArgs.Empty);
                         OnOrganicDataChanged?.Invoke(this, BioData.Values);
                     }
                     break;
@@ -302,7 +425,7 @@ namespace VoqooePlanner.Stores
             Loaded = true;
 
             //First run
-            if(_journalCommanders.Count == 0)
+            if (_journalCommanders.Count == 0)
             {
                 PerformFirstRun();
                 return;
@@ -313,18 +436,18 @@ namespace VoqooePlanner.Stores
 
         public void PerformFirstRun()
         {
-            firstRun = true;
+            FirstRun = true;
             journalWatcherStore.StopWatcher();
             journalWatcherStore.StartWatching(new(0, "", "", "", false));
         }
 
         private async Task FinishFirstRun()
         {
-            
+
             await UpdateCommanders();
             var cmdr = GetSelectedComander(0);
             await SetSelectedCommander(cmdr);
-            firstRun = false;
+            FirstRun = false;
         }
 
         public void ChangeCommander(int id)
@@ -373,7 +496,7 @@ namespace VoqooePlanner.Stores
                 system.Distance = distance;
             }
             _voqooeSystems.AddRange(systems);
-            OnSystemsUpdated?.Invoke(this, EventArgs.Empty);
+            OnSystemsUpdated?.Invoke(this, System.EventArgs.Empty);
         }
 
         private async Task SetSelectedCommander(JournalCommander commander)
@@ -382,7 +505,7 @@ namespace VoqooePlanner.Stores
             _currentCommander = commander;
             _systemVisitsToAdd.Clear();
 
-            if(_currentCommander.Id != 0)
+            if (_currentCommander.Id != 0)
                 settingsStore.SelectedCommanderID = _currentCommander.Id;
 
             if (Loaded)
@@ -390,14 +513,30 @@ namespace VoqooePlanner.Stores
                 OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
             }
 
-            await BuildBioData();
+            await BuildExplorationData();
             journalWatcherStore.StartWatching(commander);
         }
 
-        private async Task BuildBioData()
+        private async Task BuildExplorationData()
         {
             bioData.Clear();
-            var events = await voqooeDatabaseProvider.GetJournalEntriesOfType(_currentCommander.Id, [(int)JournalTypeEnum.ScanOrganic, (int)JournalTypeEnum.SellOrganicData, (int)JournalTypeEnum.Died, (int)JournalTypeEnum.Touchdown]);
+            _voqooeCartoData.Clear();
+
+            //exo events
+            var events = await voqooeDatabaseProvider.GetJournalEntriesOfType(_currentCommander.Id,
+                [(int)JournalTypeEnum.ScanOrganic, (int)JournalTypeEnum.SellOrganicData, (int)JournalTypeEnum.Touchdown]);            
+
+            foreach (var e in events)
+            {
+                ProcessJournalEntry(e);
+            }
+
+            //carto data for the last 30 days to reduce memory useage
+            //TODO add parameter in settings for age
+            events = await voqooeDatabaseProvider.GetJournalEntriesOfType(_currentCommander.Id,
+                       [(int)JournalTypeEnum.FSSDiscoveryScan, (int)JournalTypeEnum.Scan, (int)JournalTypeEnum.SAAScanComplete,
+                    (int)JournalTypeEnum.SellExplorationData, (int)JournalTypeEnum.MultiSellExplorationData,
+                    (int)JournalTypeEnum.FSDJump, (int)JournalTypeEnum.Location, (int)JournalTypeEnum.Died], DateTime.Now.AddDays(-30));
 
             foreach (var e in events)
             {
@@ -431,7 +570,7 @@ namespace VoqooePlanner.Stores
             }
             if (Loaded)
             {
-                OnCommandersUpdated?.Invoke(this, EventArgs.Empty);
+                OnCommandersUpdated?.Invoke(this, System.EventArgs.Empty);
             }
         }
     }

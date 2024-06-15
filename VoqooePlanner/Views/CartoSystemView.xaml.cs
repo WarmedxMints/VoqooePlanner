@@ -3,11 +3,11 @@
 namespace VoqooePlanner.Views
 {
     /// <summary>
-    /// Interaction logic for SettingsView.xaml
+    /// Interaction logic for CartoSystemView.xaml
     /// </summary>
-    public partial class SettingsView : UserControl
+    public partial class CartoSystemView : UserControl
     {
-        public SettingsView()
+        public CartoSystemView()
         {
             InitializeComponent();
         }

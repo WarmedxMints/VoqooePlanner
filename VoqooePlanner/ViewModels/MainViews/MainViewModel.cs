@@ -15,7 +15,6 @@ namespace VoqooePlanner.ViewModels.MainViews
         private readonly VoqooeDataStore voqooeDataStore;
         private readonly NavigationViewModel navigationViewModel;
         private readonly SettingsStore settingsStore;
-        private readonly SystemsUpdateService systemsUpdateService;
 
         public string Title { get; }
         public SettingsStore SettingsStore { get => settingsStore; }
@@ -65,6 +64,7 @@ namespace VoqooePlanner.ViewModels.MainViews
         public ICommand NavigateToVoqooeList { get; }
         public ICommand NavigateToSettingView { get; }
         public ICommand NavigateToOrganicView { get; }
+        public ICommand NavigateToCartoView { get; }
         public ICommand ResetWindowPositionCommand { get; }
 
         public EventHandler<bool>? OnSystemsUpdateEvent;
@@ -78,7 +78,6 @@ namespace VoqooePlanner.ViewModels.MainViews
             this.voqooeDataStore = voqooeDataStore;
             this.navigationViewModel = navigationViewModel;
             this.settingsStore = settingsStore;
-            this.systemsUpdateService = systemsUpdateService;
             navStore.CurrentViewModelChanged += OnCurrentViewModelChaned;
             voqooeDataStore.OnCurrentSystemChanged += OnCurrentSystemChanged;
             voqooeDataStore.OnCurrentCommanderChanged += OnCommanderChanged;
@@ -88,6 +87,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             NavigateToVoqooeList = new RelayCommand(OnNavigateToList, (_) => CurrentViewModel is not VoqooeListViewModel && UiEnabled);
             NavigateToSettingView = new RelayCommand(OnNavigateToSettings, (_) => CurrentViewModel is not SettingsViewModel && UiEnabled);
             NavigateToOrganicView = new RelayCommand(OnNavigateToExoChecklist, (_) => CurrentViewModel is not OrganicCheckListViewModel && UiEnabled);
+            NavigateToCartoView = new RelayCommand(OnNavigateToCartoView, (_) => CurrentViewModel is not CartoDataViewModel && UiEnabled);
             ResetWindowPositionCommand = new RelayCommand(OnResetWindowPos);
 
             Title = $"Voqooe Planner v{App.AppVersion.Major}.{App.AppVersion.Minor}.{App.AppVersion.Build}.{App.AppVersion.MinorRevision}";
@@ -135,6 +135,11 @@ namespace VoqooePlanner.ViewModels.MainViews
         {
             navigationViewModel.OrganicViewCommand.Execute(null);
         }
+        private void OnNavigateToCartoView(object? obj)
+        {
+            navigationViewModel.CartoViewCommand.Execute(null);
+        }
+
         private void OnResetWindowPos(object? obj)
         {
             SettingsStore.ResetWindowPosition();
@@ -145,7 +150,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             UiEnabled = e;
         }
 
-        private void OnCommandersUpdated(object? sender, EventArgs e)
+        private void OnCommandersUpdated(object? sender, System.EventArgs e)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {

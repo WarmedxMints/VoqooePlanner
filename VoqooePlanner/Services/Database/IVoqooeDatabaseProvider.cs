@@ -7,6 +7,7 @@ namespace VoqooePlanner.Services.Database
     {
         public Task<int> UpdateVoqooeSystems(IEnumerable<VoqooeSystemDTO> voqooeSystems);
         public VoqooeSystemDTO UpdateVoqooeSystem(VoqooeSystem voqooeSystem);
+        public void UpdateVoqooeSystems(IEnumerable<VoqooeSystem> voqooeSystem);
         public Task<IEnumerable<VoqooeSystem>> GetAllVoqooeSystems();
         public void AddCommanderVisit(VoqooeSystem voqooeSystem, int cmdrId);
         public void AddCommanderVisits(IEnumerable<VoqooeSystem> voqooeSystems, int cmdrId);
@@ -20,6 +21,7 @@ namespace VoqooePlanner.Services.Database
 
         public Task<IEnumerable<JournalEntry>> GetAllJournalEntries(int cmdrId);            
         public Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<int> types);
+        public Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<int> types, DateTime age);
         public void AddJournalEntries(IEnumerable<JournalEntry> journalEntries);
 
         public IEnumerable<SettingsDTO> GetAllSettings();

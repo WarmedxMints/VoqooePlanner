@@ -13,7 +13,6 @@ using VoqooePlanner.Models;
 using VoqooePlanner.Stores;
 using ODUtils.Dialogs;
 using ODUtils.PathFinding;
-using VoqooePlanner.Services.Database;
 using VoqooePlanner.ViewModels.ModelViews;
 using VoqooePlanner.Extentions;
 
@@ -25,12 +24,10 @@ namespace VoqooePlanner.ViewModels.MainViews
         public bool IsLoading { get => isLoading; set { isLoading = value; OnPropertyChanged(nameof(IsLoading)); } }
 
         private readonly VoqooeDataStore voqooeDataStore;
-        private readonly IVoqooeDatabaseProvider voqooeDatabaseProvider;
         private readonly SettingsStore settings;
-        private readonly JournalWatcherStore journalWatcher;
         private readonly ObservableCollection<VoqooeSystemViewModel> voqooeSystems;
 
-        private string readingFileText = "Scanning Bio Data";
+        private string readingFileText = "Parsing Navigation History";
         public string ReadingFileText { get => readingFileText; set { readingFileText = value; OnPropertyChanged(nameof(ReadingFileText)); } }
 
         private string distance = "0 ly";
@@ -140,12 +137,10 @@ namespace VoqooePlanner.ViewModels.MainViews
         public EventHandler<RouteStopViewModel>? OnSeletedItemChanged;
         public EventHandler<string>? OnStringCopiedToClipboard;
         public EventHandler? OnRouteCreated;
-        public VoqooeListViewModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher, LoggerStore loggerStore)
+        public VoqooeListViewModel(VoqooeDataStore voqooeDataStore, SettingsStore settings, JournalWatcherStore journalWatcher, LoggerStore loggerStore)
         {
             this.voqooeDataStore = voqooeDataStore;
-            this.voqooeDatabaseProvider = voqooeDatabaseProvider;
             this.settings = settings;
-            this.journalWatcher = journalWatcher;
             voqooeSystems = [];
 
             LoadSphereDataCommand = new LoadVoqooeDataCommand(this, voqooeDataStore, loggerStore);
@@ -162,7 +157,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             MapUp = new RelayCommand(OnMapUp, (_) => ModelGroup.Children.Count > 0);
             MapDown = new RelayCommand(OnMapDown, (_) => ModelGroup.Children.Count > 0);
             GenerateRoute = new AsyncRelayCommand(OnGenerateRoute, () => !ContinuousRoute && voqooeSystems.Any() && !calculatingRoute);
-            ChangeSelectedItem = new RelayCommand<bool>(OnChangeSelectedItem, (_) => !ContinuousRoute && Route.Any());
+            ChangeSelectedItem = new RelayCommand<bool>(OnChangeSelectedItem, (_) => !ContinuousRoute && Route.Count != 0);
             CopyStringToClipboard = new RelayCommand<string?>(OnCopyStringToClipboard);
             UpdateNearby = new RelayCommand(OnUpdateNearby);
         }
@@ -209,7 +204,7 @@ namespace VoqooePlanner.ViewModels.MainViews
 
             Application.Current.Dispatcher.Invoke(() =>
             {
-                ReadingFileText = $"Scanning Bio Data";
+                ReadingFileText = $"Parsing Navigation History";
             });
         }
 
@@ -233,14 +228,14 @@ namespace VoqooePlanner.ViewModels.MainViews
             }
         }
 
-        private void OnSystemsUpdated(object? sender, EventArgs e)
+        private void OnSystemsUpdated(object? sender, System.EventArgs e)
         {
             UpdateSystemList();
         }
 
-        public static VoqooeListViewModel CreateModel(VoqooeDataStore voqooeDataStore, IVoqooeDatabaseProvider voqooeDatabaseProvider, SettingsStore settings, JournalWatcherStore journalWatcher, LoggerStore loggerStore)
+        public static VoqooeListViewModel CreateModel(VoqooeDataStore voqooeDataStore, SettingsStore settings, JournalWatcherStore journalWatcher, LoggerStore loggerStore)
         {
-            var ret = new VoqooeListViewModel(voqooeDataStore, voqooeDatabaseProvider, settings, journalWatcher, loggerStore);
+            var ret = new VoqooeListViewModel(voqooeDataStore, settings, journalWatcher, loggerStore);
             Task.Run(() => ret.LoadSphereDataCommand.Execute(null));
             if (voqooeDataStore.Ready)
             {
@@ -473,7 +468,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             if(!isLoading && AutoCopyNextSystem)
                 OnCopyStringToClipboard(nextSystem.Name);
 
-            OnRouteCreated?.Invoke(this, EventArgs.Empty);
+            OnRouteCreated?.Invoke(this, System.EventArgs.Empty);
         }
 
         private void CreateMap()
@@ -540,7 +535,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             PositionCamera();
             ModelGroup = gr;
 
-            OnRouteCreated?.Invoke(this, EventArgs.Empty);
+            OnRouteCreated?.Invoke(this, System.EventArgs.Empty);
         }
 
         private void ColourMap(int index)

@@ -25,7 +25,7 @@ namespace VoqooePlanner.Controls
             }
         }
 
-        private void OnRouteCreated(object? sender, EventArgs e)
+        private void OnRouteCreated(object? sender, System.EventArgs e)
         {
             this.Focus();
         }

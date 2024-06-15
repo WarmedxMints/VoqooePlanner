@@ -1,4 +1,6 @@
-﻿namespace VoqooePlanner.Models
+﻿using System.ComponentModel;
+
+namespace VoqooePlanner.Models
 {
     [Flags]
     public enum NearBySystemsOptions
@@ -22,5 +24,30 @@
         Loading = -1,
         CheckList = 0,
         UnSoldList = 1
+    }
+
+    public enum DiscoveryStatus
+    {
+        Discovered,
+        UnDiscovered,
+        WorthMapping,
+        MappedByUser,
+        Noteable
+    }
+
+    public enum CartoAge
+    {
+        [Description("All")]
+        All = 0,
+        [Description("7 Days")]
+        SevenDays,
+        [Description("30 Days")]
+        ThirtyDays,
+        [Description("60 Days")]
+        SixtyDays,
+        [Description("180 Days")]
+        OneHundredEightyDays,
+        [Description("One Year")]
+        Oneyear
     }
 }

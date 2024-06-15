@@ -3,11 +3,11 @@
 namespace VoqooePlanner.Controls
 {
     /// <summary>
-    /// Interaction logic for OrganicToSellList.xaml
+    /// Interaction logic for BodyStarInfoControl.xaml
     /// </summary>
-    public partial class OrganicToSellList : UserControl
+    public partial class BodyStarInfoControl : UserControl
     {
-        public OrganicToSellList()
+        public BodyStarInfoControl()
         {
             InitializeComponent();
         }

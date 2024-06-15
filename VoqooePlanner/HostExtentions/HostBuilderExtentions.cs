@@ -31,14 +31,17 @@ namespace VoqooePlanner.HostExtentions
                 services.AddTransient(s => CreateVoqooeLisViewModel(s));
                 services.AddTransient(s => CreateSettingViewModel(s));
                 services.AddTransient<OrganicCheckListViewModel>();
+                services.AddTransient<CartoDataViewModel>();
                 services.AddSingleton<LoaderViewModel>();
                 services.AddSingleton<MainViewModel>();
-                services.AddSingleton<NavigationViewModel>();
+                services.AddSingleton<NavigationViewModel>();               
                 //Navigations
                 services.AddSingleton<Func<VoqooeListViewModel>>((s) => () => CreateVoqooeLisViewModel(s));
                 services.AddSingleton<NavigationService<VoqooeListViewModel>>();
                 services.AddSingleton<NavigationService<OrganicCheckListViewModel>>();
+                services.AddSingleton<NavigationService<CartoDataViewModel>>();
                 AddViewModelNavigation<OrganicCheckListViewModel>(services);
+                AddViewModelNavigation<CartoDataViewModel>(services);
                 services.AddSingleton<Func<SettingsViewModel>>((s) => () => CreateSettingViewModel(s));
                 services.AddSingleton<NavigationService<SettingsViewModel>>();
             });
@@ -74,7 +77,6 @@ namespace VoqooePlanner.HostExtentions
         private static VoqooeListViewModel CreateVoqooeLisViewModel(IServiceProvider services)
         {
             return VoqooeListViewModel.CreateModel(services.GetRequiredService<VoqooeDataStore>(),
-                services.GetRequiredService<IVoqooeDatabaseProvider>(),
                 services.GetRequiredService<SettingsStore>(),
                 services.GetRequiredService<JournalWatcherStore>(),
                 services.GetRequiredService<LoggerStore>());

@@ -131,6 +131,33 @@ namespace VoqooePlanner.Services.Database
             return dto;
         }
 
+        public void UpdateVoqooeSystems(IEnumerable<VoqooeSystem> voqooeSystem)
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            var dtos = voqooeSystem.Select(x => new VoqooeSystemDTO()
+            {
+                Address = x.Address,
+                Name = x.Name,
+                StarType = x.StarType,
+                Visited = x.Visited,
+                X = x.X,
+                Y = x.Y,
+                Z = x.Z,
+            });
+            context.Systems
+                .UpsertRange(dtos)
+                .On(x => x.Address)
+                .WhenMatched((matched, newSystem) => new VoqooeSystemDTO()
+                {
+                    Visited = newSystem.Visited,
+                    StarType = newSystem.StarType,
+                })
+                .Run();
+
+            context.SaveChanges();
+        }
+
         public async Task<IEnumerable<VoqooeSystem>> GetAllVoqooeSystems()
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
@@ -272,9 +299,15 @@ namespace VoqooePlanner.Services.Database
 
         public async Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<int> types)
         {
+            return await GetJournalEntriesOfType(cmdrId, types, DateTime.MinValue);
+        }
+
+        public async Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<int> types, DateTime age)
+        {
             using var context = voqooeDbContextFactory.CreateDbContext();
 
             var ret = await context.JournalEntries
+                .Where(x => x.TimeStamp >= age)
                 .EventTypeCompare(cmdrId, types)
                 .OrderBy(x => x.TimeStamp)
                 .ThenBy(x => x.Offset)

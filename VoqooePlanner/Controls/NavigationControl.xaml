@@ -16,6 +16,8 @@
                            SharedSizeGroup="Button" />
             <RowDefinition Height="Auto"
                            SharedSizeGroup="Button" />
+            <RowDefinition Height="Auto"
+                           SharedSizeGroup="Button" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto"
                            SharedSizeGroup="Button" />
@@ -34,10 +36,23 @@
         </Button>
 
         <Button Style="{StaticResource ColourImageBtn}"
-                ToolTip="Route Map"
+                ToolTip="Carto Data"
+                Foreground="{DynamicResource PrimaryControlForeground}"
+                Command="{Binding NavigateToCartoView}"
+                Grid.Row="1">
+            <Image Source="/Resources/orrery_map.png"
+                   Stretch="Uniform"
+                   SnapsToDevicePixels="True"
+                   UseLayoutRounding="True"
+                   Margin="2"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+        </Button>
+        <Button Style="{StaticResource ColourImageBtn}"
+                ToolTip="Exobiology"
                 Foreground="{DynamicResource PrimaryControlForeground}"
                 Command="{Binding NavigateToOrganicView}"
-                Grid.Row="1">
+                Grid.Row="2">
             <Image Source="/Resources/exobtn.png"
                    Stretch="Uniform"
                    SnapsToDevicePixels="True"
@@ -51,7 +66,7 @@
                 ToolTip="Settings"
                 Foreground="{DynamicResource PrimaryControlForeground}"
                 Command="{Binding NavigateToSettingView}"
-                Grid.Row="3">
+                Grid.Row="4">
             <Image Source="/Resources/settings.png"
                    Stretch="Uniform"
                    SnapsToDevicePixels="True"

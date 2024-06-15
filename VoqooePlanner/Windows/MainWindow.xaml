@@ -31,7 +31,9 @@
         <DataTemplate DataType="{x:Type vmodels:OrganicCheckListViewModel}">
             <views:OrganicCheckListView />
         </DataTemplate>
-        
+        <DataTemplate DataType="{x:Type vmodels:CartoDataViewModel}">
+            <views:CartoSystemView />
+        </DataTemplate>
     </Window.Resources>
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="30"

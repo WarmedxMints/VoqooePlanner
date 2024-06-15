@@ -1,12 +1,60 @@
-﻿using ODUtils.Models;
+﻿using EliteJournalReader;
+using EliteJournalReader.Events;
+using ODUtils.Models;
 
 namespace VoqooePlanner.Models
 {
-    public sealed class StarSystem(VoqooeSystem s) : IComparable, IEquatable<object>
+    public sealed class StarSystem : IComparable, IEquatable<object>
     {
-        public long Address { get; } = s.Address;
-        public string Name { get; } = s.Name;
-        public Position Pos { get; } = new(s.X, s.Y, s.Z);
+        public StarSystem(VoqooeSystem s)
+        {
+            Address = s.Address;
+            Name = s.Name;
+            Pos = new(s.X, s.Y, s.Z);
+            StarType = (StarType)s.StarType;
+        }
+
+        public StarSystem(long address, string name, SystemPosition pos, StarType starType)
+        {
+            Address = address;
+            Name = name;
+            Pos = new(pos.X, pos.Y, pos.Z);
+            StarType = starType;
+        }
+
+        public long Address { get; }
+        public string Name { get; }
+        public Position Pos { get; } 
+        public StarType StarType { get; }
+        public int BodyCount { get; set; }
+        public List<SystemBody> SystemBodies { get; private set; } = [];
+
+        public void AddBody(ScanEvent.ScanEventArgs args, bool ody = true)
+        {
+            var known = SystemBodies.FirstOrDefault(x => x.BodyID == args.BodyID);
+
+            if (known != null)
+            {
+                known.UpdateFromScan(args);
+                return;
+            }
+
+            var bodyToAdd = new SystemBody(args, this);
+            bodyToAdd.CalcValues(ody);
+            SystemBodies.Add(bodyToAdd);
+        }
+
+
+        public void UpdateBodyFromDSS(SAAScanCompleteEvent.SAAScanCompleteEventArgs args)
+        {
+            var known = SystemBodies.FirstOrDefault(x => x.BodyID == args.BodyID);
+
+            if (known != null)
+            {
+                known.UpdateFromDSS(args);
+                return;
+            }
+        }
 
         public static bool operator ==(StarSystem? obj1, StarSystem? obj2)
         {

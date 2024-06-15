@@ -5,14 +5,10 @@ using VoqooePlanner.Services.Database;
 
 namespace VoqooePlanner.Services
 {
-    public sealed class SystemsUpdateService
+    public sealed class SystemsUpdateService(IVoqooeDatabaseProvider voqooeDatabase)
     {
-        private readonly IVoqooeDatabaseProvider voqooeDatabase;
+        private readonly IVoqooeDatabaseProvider voqooeDatabase = voqooeDatabase;
         private SystemTimer? updateTimer;
-        public SystemsUpdateService(IVoqooeDatabaseProvider voqooeDatabase)
-        {
-            this.voqooeDatabase = voqooeDatabase;
-        }
 
         public void SetUpdateTimer(Action<string> updateTextMethod)
         {

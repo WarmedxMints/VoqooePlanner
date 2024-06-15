@@ -22,23 +22,23 @@ namespace VoqooePlanner.Stores
         public EventHandler<bool>? LiveStatusChange;
         public EventHandler<JournalEntry>? OnJournalEventRecieved;
         public EventHandler<string>? OnReadingNewFile;
-        
+        private static string? journalPath = string.Empty;
         public void StartWatching(JournalCommander cmdr)
         {
             settingsStore.SelectedCommanderID = cmdr.Id;
             _messagesReceived.Clear();
-            var path = cmdr.JournalPath;
+            journalPath = cmdr.JournalPath;
 
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(journalPath))
             {
-                path = JournalPath.GetJournalPath();
+                journalPath = JournalPath.GetJournalPath();
             }
 
-            watcher = new(path, true);
+            watcher = new(journalPath, true);
             watcher.MessageReceived += Watcher_MessageReceived;
             watcher.LiveStatusChange += OnLiveStatusChange;
             _ = watcher.StartWatchingFromFileOffset(cmdr.LastFile, 0).ConfigureAwait(false);
-            OnReadingNewFile?.Invoke(this, path);
+            OnReadingNewFile?.Invoke(this, journalPath);
         }
 
         private void OnLiveStatusChange(object? sender, bool e)
@@ -130,6 +130,18 @@ namespace VoqooePlanner.Stores
                 loggerStore.LogError("Journal Watcher - Event parser", ex);
                 _ = ODMessageBox.Show(null, $"Error Parsing Event - {e.EventType}", $"See VPLog.txt in {App.BaseDirectory} for details");
             }
+        }
+
+        public NavigationRoute? ReadNavRouteJson(int cmdrId)
+        {
+            if(watcher is null || journalCommander is null || string.IsNullOrEmpty(journalPath) || cmdrId != journalCommander.Id)
+            {
+                return null;
+            }
+            var path = Path.Combine(journalPath, "NavRoute.json");
+            var json = File.ReadAllText(path);
+            var route = NavigationRoute.FromJson(json);
+            return route;
         }
 
         public void StopWatcher()

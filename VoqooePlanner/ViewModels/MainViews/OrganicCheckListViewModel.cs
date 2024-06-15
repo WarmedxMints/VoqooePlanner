@@ -12,8 +12,8 @@ namespace VoqooePlanner.ViewModels.MainViews
         private OrganicScanDataMainView organicScanData = new();
         private readonly VoqooeDataStore voqooeData;
         private readonly SettingsStore settingsStore;
-        private ObservableCollection<OrganicDetailViewModel> organicDetails;
-        private ObservableCollection<OrganicDetailsCountViewModel> organicDetailsCount;
+        private readonly ObservableCollection<OrganicDetailViewModel> organicDetails;
+        private readonly ObservableCollection<OrganicDetailsCountViewModel> organicDetailsCount;
         private string organicTosellCount = string.Empty;
         private string totalBiosToSell = string.Empty;
         private string totalBiosToSellValue = string.Empty;
@@ -87,7 +87,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             OnPropertyChanged(nameof(CurrentState));
         }
 
-        private void OnOrganicDataToSellChanged(object? sender, EventArgs e)
+        private void OnOrganicDataToSellChanged(object? sender, System.EventArgs e)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
@@ -156,7 +156,7 @@ namespace VoqooePlanner.ViewModels.MainViews
                 }
                 var organicData = voqooeData.BioData.Values.ToList();
                 OnOrganicDataChanged(null, organicData);
-                OnOrganicDataToSellChanged(null, EventArgs.Empty);
+                OnOrganicDataToSellChanged(null, System.EventArgs.Empty);
                 OnPropertyChanged(nameof(CurrentState));
             });
         }
@@ -177,7 +177,7 @@ namespace VoqooePlanner.ViewModels.MainViews
                 OrganicScanData = new();
                 var organicData = voqooeData.BioData.Values.ToList();
                 OnOrganicDataChanged(null, organicData);
-                OnOrganicDataToSellChanged(null, EventArgs.Empty);
+                OnOrganicDataToSellChanged(null, System.EventArgs.Empty);
             });
         }
 
