@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using VoqooePlanner.Models;
 using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
 using VoqooePlanner.ViewModels.ModelViews;
@@ -17,6 +18,14 @@ namespace VoqooePlanner.ViewModels.MainViews
         private readonly VoqooeDataStore voqooeDataStore;
         private readonly JournalWatcherStore watcherStore;
         private ObservableCollection<JournalCommaderViewModel> journalCommaderViewModelCollection = [];
+        private ObservableCollection<IgnoredSystemsViewModel> ignoredSystems = [];
+
+        public ObservableCollection<IgnoredSystemsViewModel> IgnoredSystems
+        {
+            get => ignoredSystems;
+            set => ignoredSystems = value;
+        }
+
         public ObservableCollection<JournalCommaderViewModel> JournalCommaderViews
         {
             get => journalCommaderViewModelCollection;
@@ -24,8 +33,29 @@ namespace VoqooePlanner.ViewModels.MainViews
         }
 
         private bool isloaded;
-        public bool IsLoaded { get => isloaded; set { isloaded = value; OnPropertyChanged(nameof(IsLoaded)); } }
+        public bool IsLoaded 
+        { 
+            get => isloaded; 
+            set 
+            { 
+                isloaded = value; 
+                OnPropertyChanged(nameof(IsLoaded)); 
+            } 
+        }
 
+        public CartoAge CartoAge
+        {
+            get => settingsStore.CartographicAge;
+            set
+            {
+                if (value == settingsStore.CartographicAge)
+                    return;
+
+                settingsStore.CartographicAge = value;
+                OnPropertyChanged(nameof(CartoAge));
+                voqooeDataStore.ChangeCommander(settingsStore.SelectedCommanderID);
+            }
+        }
         private Visibility scanningWindowVisibility = Visibility.Collapsed;
         public Visibility ScanningWindowVisibility { get => scanningWindowVisibility; set { scanningWindowVisibility = value; OnPropertyChanged(nameof(ScanningWindowVisibility)); } }
 
@@ -59,9 +89,31 @@ namespace VoqooePlanner.ViewModels.MainViews
         public ICommand SaveCommanderChanges { get; }
         public ICommand ScanNewDirectory { get; }
         public ICommand ResetDataBaseCommand { get; }
+        public ICommand ToggleRestoreCommand { get; }
+        public ICommand SaveRestoreCommand { get; }
 
         private JournalCommaderViewModel? selectedCommander;
-        public JournalCommaderViewModel? SelectedCommander { get => selectedCommander; set { selectedCommander = value; OnPropertyChanged(nameof(SelectedCommander)); } }
+        public JournalCommaderViewModel? SelectedCommander 
+        { 
+            get => selectedCommander; 
+            set 
+            { 
+                selectedCommander = value;
+                LoadIgnoredSystems();
+                OnPropertyChanged(nameof(SelectedCommander)); 
+            } 
+        }
+
+        private IgnoredSystemsViewModel? selectedIgnoredSystem;
+        public IgnoredSystemsViewModel? SelectedIgnoreSystem
+        {
+            get => selectedIgnoredSystem;
+            set
+            {
+                selectedIgnoredSystem = value;
+                OnPropertyChanged(nameof(SelectedIgnoreSystem));
+            }
+        }
 
         public SettingsViewModel(SettingsStore settingsStore,
                                  IVoqooeDatabaseProvider voqooeDatabaseProvider,
@@ -83,6 +135,31 @@ namespace VoqooePlanner.ViewModels.MainViews
             SaveCommanderChanges = new AsyncRelayCommand(OnSaveCommanderChanges, () => IsLoaded && SelectedCommander != null);
             ScanNewDirectory = new AsyncRelayCommand(OnScanNewDirectory, () => IsLoaded);
             ResetDataBaseCommand = new AsyncRelayCommand(OnResetDataBase, () => IsLoaded);
+            ToggleRestoreCommand = new RelayCommand(OnToggleRestore, (_) => IsLoaded && SelectedIgnoreSystem != null);
+            SaveRestoreCommand = new RelayCommand(OnSaveIgnoredSystems, (_) => IsLoaded && IgnoredSystems.Any(x => x.Restore));
+        }
+
+        private void OnSaveIgnoredSystems(object? obj)
+        {
+            var systemsToSave = IgnoredSystems.Where(x => x.Restore);
+
+            if (systemsToSave.Any() == false)
+                return;
+
+            foreach(var system in systemsToSave)
+            {
+                voqooeDatabaseProvider.RemoveIgnoreSystem(system.Address, system.CmdrId);
+            }
+
+            voqooeDataStore.ChangeCommander(settingsStore.SelectedCommanderID);
+        }
+
+        private void OnToggleRestore(object? obj)
+        {
+            if (SelectedIgnoreSystem == null)
+                return;
+
+            SelectedIgnoreSystem.Restore = !SelectedIgnoreSystem.Restore;
         }
 
         public override void Dispose()
@@ -122,7 +199,10 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private void OnReadyStateChange(object? sender, bool e)
         {
-            isloaded = e;
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                IsLoaded = e;
+            });
             if (e)
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
@@ -154,7 +234,7 @@ namespace VoqooePlanner.ViewModels.MainViews
                                                         JournalWatcherStore watcherStore)
         {
             var vm = new SettingsViewModel(settingsStore, voqooeDatabaseProvider, voqooeDataStore, watcherStore);
-            _ = vm.LoadCommanders();
+            _ = vm.Initialise();
             return vm;
         }
         private void OnToggleCommanderHidden(object? obj)
@@ -195,6 +275,32 @@ namespace VoqooePlanner.ViewModels.MainViews
             }
         }
 
+        private async Task Initialise()
+        {
+            await LoadCommanders();
+        }
+
+        private void LoadIgnoredSystems()
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (SelectedCommander == null)
+                {
+                    IgnoredSystems.Clear();
+                    return;
+                }
+                IgnoredSystems.Clear();
+                var systems = voqooeDatabaseProvider.GetIgnoredSytems(SelectedCommander.Id);
+
+                foreach (var system in systems)
+                {
+                    IgnoredSystems.Add(new(system));
+                }
+
+                SelectedIgnoreSystem = IgnoredSystems.FirstOrDefault();
+            });
+
+        }
         private async Task LoadCommanders()
         {
             var commanders = await voqooeDatabaseProvider.GetAllJournalCommanders(true);

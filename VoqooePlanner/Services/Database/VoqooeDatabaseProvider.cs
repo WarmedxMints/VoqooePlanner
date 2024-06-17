@@ -297,12 +297,12 @@ namespace VoqooePlanner.Services.Database
             return ret;
         }
 
-        public async Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<int> types)
+        public async Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<JournalTypeEnum> types)
         {
             return await GetJournalEntriesOfType(cmdrId, types, DateTime.MinValue);
         }
 
-        public async Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<int> types, DateTime age)
+        public async Task<IEnumerable<JournalEntry>> GetJournalEntriesOfType(int cmdrId, IEnumerable<JournalTypeEnum> types, DateTime age)
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
 
@@ -323,6 +323,28 @@ namespace VoqooePlanner.Services.Database
             return ret;
         }
 
+        public Task ParseJounralEventsOfType(int cmdrId, IEnumerable<JournalTypeEnum> types, Action<JournalEntry> method, DateTime age)
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            var entries = context.JournalEntries
+                .Where(x => x.TimeStamp >= age)
+                .EventTypeCompare(cmdrId, types)
+                .OrderBy(x => x.TimeStamp)
+                .ThenBy(x => x.Offset);
+
+            foreach (var e in entries)
+            {                
+                method.Invoke(new JournalEntry(
+                    e.Filename,
+                    e.Offset,
+                    e.CommanderID,
+                    (JournalTypeEnum)e.EventTypeId,
+                    JournalWatcher.GetEventData(e.EventData),
+                    null));
+            }
+            return Task.CompletedTask;
+        }
         public void AddJournalEntries(IEnumerable<JournalEntry> journalEntries)
         {
             var entriesToAdd = journalEntries
@@ -381,7 +403,9 @@ namespace VoqooePlanner.Services.Database
 
             context.SaveChanges();
         }
+        #endregion
 
+        #region Database Methods
         public Task ResetDataBaseAsync()
         {
             using var context = voqooeDbContextFactory.CreateDbContext();
@@ -390,13 +414,93 @@ namespace VoqooePlanner.Services.Database
                 "DELETE FROM CommanderVistedSystems;" +
                 "DELETE FROM JournalCommanders;" +
                 "DELETE FROM JournalEntries;" +
+                "DELETE FROM CommanderIgnoredSystems;" +
+                "DELETE FROM CartoIgnoredSystems;" +
                 "DELETE FROM SQLITE_SEQUENCE WHERE name='CommanderVistedSystems';" +
                 "DELETE FROM SQLITE_SEQUENCE WHERE name='JournalCommanders';" +
+                "DELETE FROM SQLITE_SEQUENCE WHERE name='CommanderIgnoredSystems';" +
+                "DELETE FROM SQLITE_SEQUENCE WHERE name='CartoIgnoredSystems';" +
                 "DELETE FROM SQLITE_SEQUENCE WHERE name='JournalEntries';");
 
             context.SaveChangesAsync();
 
             return Task.CompletedTask;
+        }
+
+        public Task AddIgnoreSystem(long address, string name, int cmdrId)
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            var cmdr = context.JournalCommanders.First(x => x.Id == cmdrId);
+
+            var system = context.CartoIgnoredSystems.Include(x => x.Commanders).FirstOrDefault(x => x.Address == address);
+
+            if (system == null)
+            {
+                context.CartoIgnoredSystems.Add(new CartoIgnoredSystemsDTO
+                {
+                    Address = address,
+                    Name = name,
+                    Commanders = [cmdr]
+                });
+                context.SaveChanges(true); 
+                return Task.CompletedTask;
+            }
+            if (system.Commanders.Contains(cmdr) == false)
+            {
+                system.Commanders.Add(cmdr);
+                context.SaveChanges(true);
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveIgnoreSystem(long address, int cmdrId)
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            var cmdr = context.JournalCommanders.First(x => x.Id == cmdrId);
+
+            var system = context.CartoIgnoredSystems.Include(x => x.Commanders).FirstOrDefault(x => x.Address == address && x.Commanders.Contains(cmdr));
+
+            if(system != null)
+            {
+                system.Commanders.Remove(cmdr);
+                context.SaveChanges();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Dictionary<long, string> GetIgnoredSytemsDictionary(int cmdrId)
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            var cmdr = context.JournalCommanders.First(x => x.Id == cmdrId);
+
+            var systems = context.CartoIgnoredSystems
+                .Include(x => x.Commanders)
+                .Where(x => x.Commanders.Contains(cmdr));
+
+            return systems.ToDictionary(x => x.Address, x => x.Name);
+        }
+
+        public IEnumerable<IgnoredSystem> GetIgnoredSytems(int cmdrId)
+        {
+            using var context = voqooeDbContextFactory.CreateDbContext();
+
+            var cmdr = context.JournalCommanders.First(x => x.Id == cmdrId);
+
+            var ret = context.CartoIgnoredSystems
+                .Include(x => x.Commanders)
+                .Where(x => x.Commanders.Contains(cmdr))
+                .OrderBy(x => x.Name)
+                .Select(x => new IgnoredSystem(
+                    x.Address,
+                    x.Name,
+                    cmdrId))
+                    .ToList();
+
+            return ret;
         }
         #endregion
     }

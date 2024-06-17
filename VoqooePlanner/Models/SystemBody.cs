@@ -34,23 +34,29 @@ namespace VoqooePlanner.Models
         public bool EffeicentMapped { get; private set; }
         public int GeologicalSignals { get; private set; }
         public int BiologicalSignals { get; private set; }
-
+        public double AxialTilt { get; private set; }
+        public double Age_MY { get; private set; }
+        public double AbsoluteMagnitude { get; private set; }
+        public StarLuminosity StarLuminosity { get; private set; }
         public bool IsStar => StarType != StarType.Unknown;        
         public bool IsPlanet => PlanetClass != PlanetClass.Unknown;
         public bool Terraformable { get { return TerraformState is TerraformState.Terraformable or TerraformState.Terraforming or TerraformState.Terraformed; } }
         public SystemBody(ScanEvent.ScanEventArgs e, StarSystem owner)
         {
             Owner = owner;
-            OrbitalPeriod = e.OrbitalPeriod ?? 0;
-            RotationPeriod = e.RotationPeriod ?? 0;
-            Radius = e.Radius ?? 0;
+            StarLuminosity = e.Luminosity;
+            Age_MY = e.Age_MY ?? 0;
+            AbsoluteMagnitude = e.AbsoluteMagnitude ?? 0;
+            OrbitalPeriod = e.OrbitalPeriod / 86400 ?? 0;
+            RotationPeriod = e.RotationPeriod / 86400 ?? 0;
+            Radius = e.Radius / 1000 ?? 0;
             TidalLock = e.TidalLock ?? false;
             Volcanism = string.IsNullOrEmpty(e.Volcanism) ? "No Volcanism" : e.Volcanism; 
             StarType = e.StarType;
             PlanetClass = e.PlanetClass;
             StellarMass = e.StellarMass ?? 0;
             MassEM = e.MassEM ?? 0;
-            SurfaceGravity = e.SurfaceGravity ?? 0;
+            SurfaceGravity = e.SurfaceGravity / 10 ?? 0;
             SurfacePressure = e.SurfacePressure ?? 0;
             SurfaceTemp = e.SurfaceTemperature ?? 0;
             AtmosphereType = e.AtmosphereType;
@@ -60,11 +66,15 @@ namespace VoqooePlanner.Models
             DistanceFromArrivalLs = e.DistanceFromArrivalLs;
             Landable = e.Landable ?? false;
             WasMapped = e.WasMapped ?? false;
+            AxialTilt = e.AxialTilt ?? 0;
         }
 
         public void UpdateFromScan(ScanEvent.ScanEventArgs e, bool ody = true)
         {
             BodyName = e.BodyName;
+            Age_MY = e.Age_MY ?? 0;
+            AbsoluteMagnitude = e.AbsoluteMagnitude ?? 0;
+            StarLuminosity = e.Luminosity;
             DistanceFromArrivalLs = e.DistanceFromArrivalLs;
             StarType = e.StarType;
             StellarMass = e.StellarMass ?? 0;
@@ -73,15 +83,15 @@ namespace VoqooePlanner.Models
             TerraformState = e.TerraformState;
             AtmosphereType = e.AtmosphereType;
             Landable = e.Landable ?? false;
-            SurfaceGravity = e.SurfaceGravity ?? 0;
+            SurfaceGravity = e.SurfaceGravity / 10 ?? 0;
             SurfacePressure = e.SurfacePressure ?? 0;
             SurfaceTemp = e.SurfaceTemperature ?? 0;
             Volcanism = e.Volcanism;
             TidalLock = e.TidalLock ?? false;
-            OrbitalPeriod = e.OrbitalPeriod ?? 0;
-            RotationPeriod = e.RotationPeriod ?? 0;
-            Radius = e.Radius ?? 0;
-           
+            OrbitalPeriod = e.OrbitalPeriod / 86400 ?? 0;
+            RotationPeriod = e.RotationPeriod / 86400 ?? 0;
+            Radius = e.Radius / 1000 ?? 0;
+            AxialTilt = e.AxialTilt ?? 0;
             WasDiscovered = e.WasDiscovered ?? false;
             //Whan a body is mapped by the user a scan event is fired
             //For some reason that scan event can report the body as not mapped when it has been previously

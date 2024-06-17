@@ -37,17 +37,17 @@ namespace VoqooePlanner.Models
 
     public enum CartoAge
     {
-        [Description("All")]
+        [Description("Load All")]
         All = 0,
-        [Description("7 Days")]
+        [Description("< 7 Days")]
         SevenDays,
-        [Description("30 Days")]
+        [Description("< 30 Days")]
         ThirtyDays,
-        [Description("60 Days")]
+        [Description("< 60 Days")]
         SixtyDays,
-        [Description("180 Days")]
+        [Description("< 180 Days")]
         OneHundredEightyDays,
-        [Description("One Year")]
+        [Description("< One Year")]
         Oneyear
     }
 }

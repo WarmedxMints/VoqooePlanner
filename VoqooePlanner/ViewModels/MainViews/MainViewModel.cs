@@ -1,5 +1,7 @@
 ﻿using ODUtils.Commands;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Input;
 using VoqooePlanner.Models;
@@ -15,6 +17,7 @@ namespace VoqooePlanner.ViewModels.MainViews
         private readonly VoqooeDataStore voqooeDataStore;
         private readonly NavigationViewModel navigationViewModel;
         private readonly SettingsStore settingsStore;
+        private readonly EdsmApiService edsmApiService;
 
         public string Title { get; }
         public SettingsStore SettingsStore { get => settingsStore; }
@@ -72,12 +75,14 @@ namespace VoqooePlanner.ViewModels.MainViews
                              VoqooeDataStore voqooeDataStore,
                              NavigationViewModel navigationViewModel,
                              SettingsStore settingsStore,
-                             SystemsUpdateService systemsUpdateService)
+                             SystemsUpdateService systemsUpdateService,
+                             EdsmApiService edsmApiService)
         {
             this.navStore = navStore;
             this.voqooeDataStore = voqooeDataStore;
             this.navigationViewModel = navigationViewModel;
             this.settingsStore = settingsStore;
+            this.edsmApiService = edsmApiService;
             navStore.CurrentViewModelChanged += OnCurrentViewModelChaned;
             voqooeDataStore.OnCurrentSystemChanged += OnCurrentSystemChanged;
             voqooeDataStore.OnCurrentCommanderChanged += OnCommanderChanged;

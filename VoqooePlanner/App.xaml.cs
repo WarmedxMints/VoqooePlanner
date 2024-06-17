@@ -4,6 +4,8 @@ using NLog;
 using ODUtils.Dialogs;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Windows;
 using VoqooePlanner.HostExtentions;
 using VoqooePlanner.Services;
@@ -18,7 +20,7 @@ namespace VoqooePlanner
     /// </summary>
     public partial class App : Application
     {
-        public static readonly Version AppVersion = new(1, 1, 3, 0);
+        public static readonly Version AppVersion = new(1, 1, 3, 1);
 #if INSTALL
         public readonly static string BaseDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "VoqooePlanner");
 #else
@@ -50,6 +52,18 @@ namespace VoqooePlanner
                 .AddServices()
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddHttpClient<EdsmApiService>((httpclient) =>
+                    {
+                        httpclient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        httpclient.BaseAddress = new Uri("https://www.edsm.net/api-system-v1/");
+                    })
+                    .ConfigurePrimaryHttpMessageHandler(() =>
+                    {
+                        return new SocketsHttpHandler
+                        {
+                            PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+                        };
+                    });
                     services.AddSingleton<LoggerStore>();
                     //Windows
                     services.AddTransient<LoaderWindow>();
@@ -83,7 +97,7 @@ namespace VoqooePlanner
 #if DEBUG
             var createDb = !File.Exists(Path.Combine(BaseDirectory, database));
 
-            if (createDb)
+            if (!createDb)
             {
 #endif
                 //Disable shutdown when the dialog closes

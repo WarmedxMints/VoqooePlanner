@@ -18,7 +18,7 @@ namespace VoqooePlanner.Stores
         public List<int> StarClassFilter { get; set; } = [-1];
         public WindowPositionViewModel WindowPosition { get; set; } = new();
         public ExoBiologyViewState BiologyViewState { get; set; } = ExoBiologyViewState.CheckList;
-        public CartoAge CatrographicAge { get; set; } = CartoAge.ThirtyDays;
+        public CartoAge CartographicAge { get; set; } = CartoAge.ThirtyDays;
 
         public void LoadSettings()
         {
@@ -34,7 +34,7 @@ namespace VoqooePlanner.Stores
                 StarClassFilter                 = SettingsDTO.SettingDtoToJson(settings.GetSettingDTO(nameof(StarClassFilter)), StarClassFilter);
                 WindowPosition                  = SettingsDTO.SettingDtoToJson(settings.GetSettingDTO(nameof(WindowPosition)), WindowPosition);
                 BiologyViewState                = SettingsDTO.SettingDtoToEnum(settings.GetSettingDTO(nameof(BiologyViewState)), BiologyViewState);
-                CatrographicAge                 = SettingsDTO.SettingDtoToEnum(settings.GetSettingDTO(nameof(CatrographicAge)), CatrographicAge);
+                CartographicAge                 = SettingsDTO.SettingDtoToEnum(settings.GetSettingDTO(nameof(CartographicAge)), CartographicAge);
             }
 
             if(WindowPosition.IsZero)
@@ -43,6 +43,21 @@ namespace VoqooePlanner.Stores
             }
         }
 
+        public DateTime JournalAge
+        {
+            get
+            {
+                return CartographicAge switch
+                {
+                    CartoAge.SevenDays => DateTime.UtcNow.AddDays(-7),
+                    CartoAge.ThirtyDays => DateTime.UtcNow.AddDays(-30),
+                    CartoAge.SixtyDays => DateTime.UtcNow.AddDays(-60),
+                    CartoAge.OneHundredEightyDays => DateTime.UtcNow.AddDays(-180),
+                    CartoAge.Oneyear => DateTime.UtcNow.AddYears(-1),
+                    _ => DateTime.MinValue,
+                };
+            }
+        }
         public void SaveSettings()
         {
             var settings = new List<SettingsDTO>
@@ -55,7 +70,7 @@ namespace VoqooePlanner.Stores
                 SettingsDTO.ObjectToJsonStringDto(nameof(StarClassFilter), StarClassFilter),
                 SettingsDTO.ObjectToJsonStringDto(nameof(WindowPosition), WindowPosition),
                 SettingsDTO.EnumToSettingsDto(nameof(BiologyViewState), BiologyViewState),
-                SettingsDTO.EnumToSettingsDto(nameof(CatrographicAge), CatrographicAge),
+                SettingsDTO.EnumToSettingsDto(nameof(CartographicAge), CartographicAge),
             };
 
             voqooeDatabase.AddSettings(settings);

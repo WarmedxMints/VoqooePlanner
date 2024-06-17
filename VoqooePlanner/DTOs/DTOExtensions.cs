@@ -1,12 +1,13 @@
-﻿using VoqooePlanner.Models;
+﻿using EliteJournalReader;
+using VoqooePlanner.Models;
 
 namespace VoqooePlanner.DTOs
 {
     public static class DTOExtensions
     {
-        public static IQueryable<JournalEntryDTO> EventTypeCompare(this IQueryable<JournalEntryDTO> query, int cmdrId, IEnumerable<int> types)
+        public static IQueryable<JournalEntryDTO> EventTypeCompare(this IQueryable<JournalEntryDTO> query, int cmdrId, IEnumerable<JournalTypeEnum> types)
         {
-            return query.Where(x => x.CommanderID == cmdrId && types.Contains(x.EventTypeId));
+            return query.Where(x => x.CommanderID == cmdrId && types.Contains((JournalTypeEnum)x.EventTypeId));
         }
 
         public static IQueryable<VoqooeSystemDTO> CheckWhatToInclude(this IQueryable<VoqooeSystemDTO> query, NearBySystemsOptions options, int commanderId)

@@ -53,7 +53,7 @@ namespace VoqooePlanner.Services
                     return;
                 }
 
-                updateTextMethod.Invoke("No Update Required");
+                updateTextMethod.Invoke("Systems Up-To-Date");
                 await Task.Delay(1000);
                 return;
             }

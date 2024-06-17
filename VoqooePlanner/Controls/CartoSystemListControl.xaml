@@ -13,103 +13,151 @@
              FontWeight="Medium"
              d:DesignHeight="450"
              d:DesignWidth="800">
-    <GroupBox Header="Systems"
-              Margin="5"
-              Padding="5"
-              BorderThickness="0.5">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition Height="50" />
-            </Grid.RowDefinitions>
-            <DataGrid ItemsSource="{Binding Systems}"
-                      SelectedItem="{Binding SelectedSystem}"
-                      x:Name="SystemGrid"
-                      SelectionMode="Single"
-                      IsHitTestVisible="True"
-                      GridLinesVisibility="All"
-                      CanUserSortColumns="True"
-                      Background="Transparent"
-                      HeadersVisibility="Column"
-                      BorderThickness="0"
-                      Style="{DynamicResource BaseDataGridStyle}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="System"
-                                        Binding="{Binding Name}"
-                                        CellStyle="{DynamicResource CmdrSelectionCellLeft}"
-                                        IsReadOnly="True"
-                                        HeaderStyle="{DynamicResource DataGridHeaderLeft}"
-                                        Width="240" />
-                    <DataGridTextColumn HeaderStyle="{DynamicResource DataGridHeaderCenter}"
-                                        Binding="{Binding ScannedBodies}"
-                                        CellStyle="{DynamicResource CmdrSelectionCellRight}"
-                                        SortMemberPath="ScannedBodiesValue"
-                                        IsReadOnly="True"
-                                        Width="50">
-                        <DataGridTextColumn.Header>
-                            <TextBlock Text="SB"
-                                       ToolTip="Scanned Bodies - The number of bodies scanned by the commander" />
-                        </DataGridTextColumn.Header>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Binding="{Binding DiscoveredBodes}"
-                                        HeaderStyle="{DynamicResource DataGridHeaderCenter}"
-                                        CellStyle="{DynamicResource CmdrSelectionCellRight}"
-                                        SortMemberPath="DiscoveredBodesValue"
-                                        IsReadOnly="True"
-                                        Width="50">
-                        <DataGridTextColumn.Header>
-                            <TextBlock Text="DB"
-                                       ToolTip="Discovered bodies - The number of bodies reported by the discovery scanner" />
-                        </DataGridTextColumn.Header>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn  HeaderStyle="{DynamicResource DataGridHeaderCenter}"
-                                         Binding="{Binding StringValue}"
-                                         CellStyle="{DynamicResource CmdrSelectionCellRight}"
-                                         SortMemberPath="Value"
-                                         IsReadOnly="True"
-                                         Width="180">
-                        <DataGridTextColumn.Header>
-                            <TextBlock Text="Value"
-                                       ToolTip="Carto value" />
-                        </DataGridTextColumn.Header>
-                    </DataGridTextColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <GroupBox Header="Systems"
+                  Margin="5"
+                  Padding="5"
+                  BorderThickness="0.5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+                <DataGrid ItemsSource="{Binding Systems}"
+                          SelectedItem="{Binding SelectedSystem}"
+                          x:Name="SystemGrid"
+                          SelectionMode="Single"
+                          IsHitTestVisible="True"
+                          GridLinesVisibility="All"
+                          CanUserSortColumns="True"
+                          Background="Transparent"
+                          HeadersVisibility="Column"
+                          BorderThickness="0"
+                          Style="{DynamicResource BaseDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="System"
+                                            Binding="{Binding Name}"
+                                            CellStyle="{DynamicResource CmdrSelectionCellLeft}"
+                                            IsReadOnly="True"
+                                            HeaderStyle="{DynamicResource DataGridHeaderLeft}"
+                                            Width="240" />
+                        <DataGridTextColumn HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                            Binding="{Binding ScannedBodies}"
+                                            CellStyle="{DynamicResource CmdrSelectionCellRight}"
+                                            SortMemberPath="ScannedBodiesValue"
+                                            IsReadOnly="True"
+                                            Width="50">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="SB"
+                                           ToolTip="Scanned Bodies - The number of bodies scanned by the commander" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Binding="{Binding DiscoveredBodes}"
+                                            HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                            CellStyle="{DynamicResource CmdrSelectionCellRight}"
+                                            SortMemberPath="DiscoveredBodesValue"
+                                            IsReadOnly="True"
+                                            Width="50">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="DB"
+                                           ToolTip="Discovered bodies - The number of bodies reported by the discovery scanner" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  HeaderStyle="{DynamicResource DataGridHeaderCenter}"
+                                             Binding="{Binding StringValue}"
+                                             CellStyle="{DynamicResource CmdrSelectionCellRight}"
+                                             SortMemberPath="Value"
+                                             IsReadOnly="True"
+                                             Width="180">
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Value"
+                                           ToolTip="Carto value" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
 
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Total Systems"
-                           Grid.Column="0"
-                           Width="140"
-                           FontSize="20"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center" />
-                <TextBlock Text="{Binding Systems.Count}"
-                           Grid.Column="1"
-                           FontSize="20"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center" />
+                    <TextBlock Text="Total Systems"
+                               Grid.Column="0"
+                               Width="140"
+                               FontSize="20"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Systems.Count}"
+                               Grid.Column="1"
+                               FontSize="20"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
 
-                <TextBlock Text="Total Value"
-                           Width="140"
-                           FontSize="20"
-                           Grid.Column="3"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center" />
-                <TextBlock Text="{Binding TotalValue}"
-                           Grid.Column="4"
-                           FontSize="20"
-                           Margin="0,0,25,0"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center" />
+                    <TextBlock Text="Total Value"
+                               Width="140"
+                               FontSize="20"
+                               Grid.Column="3"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding TotalValue}"
+                               Grid.Column="4"
+                               FontSize="20"
+                               Margin="0,0,25,0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center" />
+                </Grid>
             </Grid>
+        </GroupBox>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            
+        <GroupBox Header="Links"                 
+                  Margin="5"
+                  Padding="5"
+                  BorderThickness="0.5">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="EDSM"
+                        Width="80"
+                        Height="30"
+                        Margin="5"
+                        Command="{Binding OpenEDSM}" />
+
+                <Button Content="Spansh"
+                        Width="80"
+                        Height="30"
+                        Margin="5"
+                        Command="{Binding OpenSpansh}" />
+            </StackPanel>
+        </GroupBox>
+
+            <GroupBox Header="DataBase"
+                      Grid.Column="1"
+                      Margin="5"
+                      Padding="5"
+                      BorderThickness="0.5">
+                <Button ToolTip="ED will sometimes fire a scan event without giving you carto data which will generate erroneous systems in the above list&#x0a;&#x0a;You can add the selected system to the ignore list so they aren't included;&#x0a;&#x0a;You can restore systems in the settings page"
+                            
+                            Width="Auto"
+                            HorizontalAlignment="Center"
+                            Height="30"
+                            Margin="10,5"
+                            Command="{Binding AddToIgnoreList}">
+                    <TextBlock Text="{Binding SetIgnoreSystemText}"
+                               Margin="10,0"/>
+                    </Button>
+            </GroupBox>
         </Grid>
-    </GroupBox>
+    </Grid>
 </UserControl>

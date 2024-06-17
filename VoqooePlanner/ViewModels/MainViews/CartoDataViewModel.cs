@@ -1,6 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using ODUtils.Commands;
+using ODUtils.Dialogs;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
 using VoqooePlanner.EventArgs;
+using VoqooePlanner.Services;
+using VoqooePlanner.Services.Database;
 using VoqooePlanner.Stores;
 using VoqooePlanner.ViewModels.ModelViews;
 
@@ -9,6 +15,9 @@ namespace VoqooePlanner.ViewModels.MainViews
     public sealed class CartoDataViewModel : ViewModelBase
     {
         private readonly VoqooeDataStore dataStore;
+        private readonly EdsmApiService edsmApiService;
+        private readonly IVoqooeDatabaseProvider voqooeDatabase;
+        private readonly SettingsStore settingsStore;
         private readonly ObservableCollection<StarSystemViewModel> systems = [];
         private StarSystemViewModel? selectedSystem;
         private SystemBodyViewModel? selectedBody;
@@ -32,20 +41,103 @@ namespace VoqooePlanner.ViewModels.MainViews
             set { 
                 selectedBody = value; 
                 OnPropertyChanged(nameof(SelectedBody)); 
+                OnPropertyChanged(nameof(SelectedBodyIsPlanet)); 
+                OnPropertyChanged(nameof(SelectedBodyIsStar)); 
+                OnPropertyChanged(nameof(SetIgnoreSystemText)); 
                 OnSelectedBodyChanged?.Invoke(this, SelectedBody);
             } 
         }
+
+        public bool SelectedBodyIsPlanet
+        {
+            get
+            {
+                if (SelectedBody == null) return false;
+                return SelectedBody.IsPlanet;
+            }
+        }
+
+        public bool SelectedBodyIsStar
+        {
+            get
+            {
+                if (SelectedBody == null) return false;
+                return SelectedBody.IsStar;
+            }
+        }
+
+        public string SetIgnoreSystemText
+        {
+            get
+            {
+                if (SelectedSystem is null)
+                    return "No System Selected";
+
+                return $"Add {SelectedSystem.Name} To Ignore List";
+            }
+        }
+
         public string TotalValue => Systems.Sum(x => x.Value).ToString("N0");
 
         public EventHandler<StarSystemViewModel?>? OnSelectedSystemChanged;
         public EventHandler<SystemBodyViewModel?>? OnSelectedBodyChanged;
 
-        public CartoDataViewModel(VoqooeDataStore dataStore)
+        public ICommand OpenEDSM { get; }
+        public ICommand OpenSpansh { get; }
+        public ICommand AddToIgnoreList { get; }
+
+        public CartoDataViewModel(VoqooeDataStore dataStore,
+                                  EdsmApiService edsmApiService,
+                                  IVoqooeDatabaseProvider voqooeDatabase,
+                                  SettingsStore settingsStore)
         {
             this.dataStore = dataStore;
+            this.edsmApiService = edsmApiService;
+            this.voqooeDatabase = voqooeDatabase;
+            this.settingsStore = settingsStore;
             Task.Factory.StartNew(() => Application.Current.Dispatcher.Invoke(() => BuildSystems(0, 0)));
             dataStore.ReadyStatusChange += OnStoreReady;
             dataStore.OnCartoDataUpdated += OnCartDataUpdated;
+            OpenEDSM = new AsyncRelayCommand(OnOpenEDSM, () => SelectedSystem != null);
+            OpenSpansh = new RelayCommand(OnOpenSpansh, (_) => SelectedSystem != null);
+            AddToIgnoreList = new RelayCommand(OnAddToIgnoreList, (_) => SelectedSystem != null);
+        }
+
+        private void OnAddToIgnoreList(object? obj)
+        {
+            if (SelectedSystem != null)
+            {
+                voqooeDatabase.AddIgnoreSystem(SelectedSystem.Address, SelectedSystem.Name, settingsStore.SelectedCommanderID);
+                dataStore.RemoveSystemFromCartoData(SelectedSystem.Address);
+                Systems.Remove(SelectedSystem);
+                SelectedSystem = null;
+                SelectedBody = null;
+                OnPropertyChanged(nameof(Systems));
+                OnPropertyChanged(nameof(TotalValue));
+            }
+        }
+
+        private void OnOpenSpansh(object? obj)
+        {
+            if (selectedSystem == null)
+                return;
+
+            Process.Start(new ProcessStartInfo($"https://spansh.co.uk/system/{selectedSystem.Address}") { UseShellExecute = true });        
+        }
+
+        private async Task OnOpenEDSM()
+        {
+            if (selectedSystem == null)
+                return;
+
+            var ret = await edsmApiService.GetSystemUrlAsync(selectedSystem.Address);
+
+            if (ret != null)
+            {
+                Process.Start(new ProcessStartInfo(ret) { UseShellExecute = true });
+                return;
+            }
+            _= ODMessageBox.Show(null, "System Not Found", $"EDSM returned no results for address {selectedSystem.Address}");
         }
 
         public override void Dispose()
@@ -85,11 +177,12 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private void BuildSystems(long systemAddress = 0, long bodyid = 0)
         {
-            systems.Clear();
+            Systems.Clear();
 
-            foreach(var system in dataStore.CartoSystems)
+            var systemsToAdd = dataStore.CartoSystems.Where(x => x.SystemBodies.Count > 0);
+            foreach (var system in systemsToAdd)
             {
-                systems.Add(new(system));
+                Systems.Add(new(system));
             }
 
             SetSelectedItems(systemAddress, bodyid);

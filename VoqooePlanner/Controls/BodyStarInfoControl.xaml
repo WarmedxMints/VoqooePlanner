@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:VoqooePlanner.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid DataContext="{Binding SelectedBody}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
             <ColumnDefinition />
@@ -44,11 +44,11 @@
                    Grid.Column="1"
                    Grid.Row="2" />
 
-        <TextBlock Text="Surface Pressure"
+        <TextBlock Text="Absolute Magnitude"
                    Grid.Column="3"
                    Grid.Row="0" />
 
-        <TextBlock Text="{Binding SurfacePressure}"
+        <TextBlock Text="{Binding AbsoluteMagnitude}"
                    Grid.Column="4"
                    Grid.Row="0" />
 
@@ -68,5 +68,22 @@
         <TextBlock Text="{Binding OrbitalPeriod}"
                    Grid.Column="4"
                    Grid.Row="2" />
+
+        <TextBlock Text="Age MY"
+                   Grid.Column="0"
+                   Grid.Row="3" />
+
+        <TextBlock Text="{Binding Age_MY}"
+                   Grid.Column="1"
+                   Grid.Row="3" />
+
+
+        <TextBlock Text="Luminosity"
+                   Grid.Column="3"
+                   Grid.Row="3" />
+
+        <TextBlock Text="{Binding StarLuminosity}"
+                   Grid.Column="4"
+                   Grid.Row="3" />
     </Grid>
 </UserControl>

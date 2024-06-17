@@ -9,6 +9,7 @@ namespace VoqooePlanner.DbContexts
         public DbSet<JournalCommanderDTO> JournalCommanders { get; set; }
         public DbSet<JournalEntryDTO> JournalEntries { get; set; }
         public DbSet<SettingsDTO> Settings { get; set; }
+        public DbSet<CartoIgnoredSystemsDTO> CartoIgnoredSystems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,6 +23,11 @@ namespace VoqooePlanner.DbContexts
                 .HasMany(e => e.CommanderVisits)
                 .WithMany()
                 .UsingEntity("CommanderVistedSystems");
+
+            modelBuilder.Entity<CartoIgnoredSystemsDTO>()
+                .HasMany(e => e.Commanders)
+                .WithMany()
+                .UsingEntity("CommanderIgnoredSystems");
         }
     }
 }
