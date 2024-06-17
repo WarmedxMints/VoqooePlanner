@@ -4,7 +4,7 @@ Voqooe Planner is designed to assist explorers in the Voqooe sector.  It was pri
 
 It can be used to find known systems, including those which haven't been visited yet, with various filters.
 
-System data is updating when loading and at 10 parts the hour when running.  This data is populated using data from EDDN.
+System data is updating when loading and at 10 parts the hour when running.  This data is populated using from EDDN.
 
 ![Bmz2iqsmcJ](https://github.com/WarmedxMints/VoqooePlanner/assets/26460336/85297292-6c29-4716-9873-660c84511064)
 
