@@ -20,6 +20,7 @@
             <RowDefinition />
             <RowDefinition />
             <RowDefinition />
+            <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock Text="Earth Masses"
@@ -60,6 +61,14 @@
         <TextBlock Text="{Binding TidalLock}"
                    Grid.Column="1"
                    Grid.Row="4" />
+
+        <TextBlock Text="Terraformable"
+                   Grid.Column="0"
+                   Grid.Row="5" />
+
+        <TextBlock Text="{Binding TerraformStatus}"
+                   Grid.Column="1"
+                   Grid.Row="5" />
         
         <TextBlock Text="Atmosphere Type"
                    Grid.Column="3"
@@ -101,5 +110,13 @@
         <TextBlock Text="{Binding AxialTilt}"
                    Grid.Column="4"
                    Grid.Row="4" />
+
+        <TextBlock Text="Landable"
+                   Grid.Column="3"
+                   Grid.Row="5" />
+
+        <TextBlock Text="{Binding Landable}"
+                   Grid.Column="4"
+                   Grid.Row="5" />
     </Grid>
 </UserControl>

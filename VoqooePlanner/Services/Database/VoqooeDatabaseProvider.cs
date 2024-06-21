@@ -24,10 +24,10 @@ namespace VoqooePlanner.Services.Database
                 var ret = await context.Systems
                     .UpsertRange(voqooeSystems)
                     .On(s => s.Address)
-                    .UpdateIf((matched, newItem) => matched.Value != newItem.Value
-                                                 && matched.Visited != newItem.Visited
-                                                 && matched.ContainsELW != newItem.ContainsELW
-                                                 && matched.StarType != newItem.StarType)
+                    .UpdateIf((matched, newItem) => matched.Value < newItem.Value
+                                                 || matched.Visited != newItem.Visited
+                                                 || matched.ContainsELW != newItem.ContainsELW
+                                                 || matched.StarType != newItem.StarType)
                     .WhenMatched((matched, newItem) => new VoqooeSystemDTO()
                     {
                         Visited = newItem.Visited,
@@ -67,6 +67,7 @@ namespace VoqooePlanner.Services.Database
             if (system.CommanderVisits.Contains(cmdr) == false)
             {
                 system.CommanderVisits.Add(cmdr);
+                system.Visited = true;
                 context.SaveChanges();
             }
 

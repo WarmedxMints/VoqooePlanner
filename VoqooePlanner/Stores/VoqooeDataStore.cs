@@ -26,6 +26,8 @@ namespace VoqooePlanner.Stores
         private readonly Dictionary<long, string> _ignoredSystems = [];
         private RouteStopViewModel? selectedItem;
 
+        public StarSystemViewModel? SelectedSystem { get; set; }
+        public SystemBodyViewModel? SelectedBody { get; set; }
         public List<RouteStopViewModel> Route => route;
         public RouteStopViewModel? SelectedItem { get => selectedItem; set { selectedItem = value; } }
         public IEnumerable<JournalCommander> JournalCommaders => _journalCommanders;
@@ -110,13 +112,11 @@ namespace VoqooePlanner.Stores
                         voqooeDatabaseProvider.AddCommanderVisits(system.Value, system.Key);
                     }
                     _systemVisitsToAdd.Clear();
-                }
-
-                await UpdateCommanders();
-                await UpdateSystems();
+                }                
                 OnCurrentSystemChanged?.Invoke(this, currentSystem);
                 OnCurrentCommanderChanged?.Invoke(this, _currentCommander);
-
+                await UpdateCommanders();
+                await UpdateSystems();
                 ReadyStatusChange?.Invoke(this, Ready);
             });
         }

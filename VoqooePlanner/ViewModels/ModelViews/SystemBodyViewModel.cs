@@ -32,6 +32,8 @@ namespace VoqooePlanner.ViewModels.ModelViews
         public string StarLuminosity => body.StarLuminosity.GetDescription();
         public string AbsoluteMagnitude => $"{body.AbsoluteMagnitude:N4}";
         public string Age_MY => body.Age_MY.ToString("N0");
+        public string TerraformStatus => body.Terraformable ? "Yes" : "No";
+        public string Landable => body.Landable ? "Yes" : "No";
         public string BodyNameLocal
         {
             get

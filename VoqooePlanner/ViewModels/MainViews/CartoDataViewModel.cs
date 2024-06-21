@@ -19,27 +19,26 @@ namespace VoqooePlanner.ViewModels.MainViews
         private readonly IVoqooeDatabaseProvider voqooeDatabase;
         private readonly SettingsStore settingsStore;
         private readonly ObservableCollection<StarSystemViewModel> systems = [];
-        private StarSystemViewModel? selectedSystem;
-        private SystemBodyViewModel? selectedBody;
+
         private bool isloading = false;
 
         public bool IsLoading { get => isloading; set { isloading = value; OnPropertyChanged(nameof(IsLoading));  } }
         public ObservableCollection<StarSystemViewModel> Systems { get =>  systems; }
         public StarSystemViewModel? SelectedSystem 
         { 
-            get => selectedSystem; 
-            set { 
-                selectedSystem = value;
-                SelectedBody = selectedSystem?.Bodies.FirstOrDefault();
+            get => dataStore.SelectedSystem; 
+            set {
+                dataStore.SelectedSystem = value;
+                SelectedBody = dataStore.SelectedSystem?.Bodies.FirstOrDefault();
                 OnPropertyChanged(nameof(SelectedSystem));
                 OnSelectedSystemChanged?.Invoke(this, SelectedSystem);
             } 
         }
         public SystemBodyViewModel? SelectedBody 
         { 
-            get => selectedBody; 
-            set { 
-                selectedBody = value; 
+            get => dataStore.SelectedBody; 
+            set {
+                dataStore.SelectedBody = value; 
                 OnPropertyChanged(nameof(SelectedBody)); 
                 OnPropertyChanged(nameof(SelectedBodyIsPlanet)); 
                 OnPropertyChanged(nameof(SelectedBodyIsStar)); 
@@ -119,25 +118,25 @@ namespace VoqooePlanner.ViewModels.MainViews
 
         private void OnOpenSpansh(object? obj)
         {
-            if (selectedSystem == null)
+            if (SelectedSystem == null)
                 return;
 
-            Process.Start(new ProcessStartInfo($"https://spansh.co.uk/system/{selectedSystem.Address}") { UseShellExecute = true });        
+            Process.Start(new ProcessStartInfo($"https://spansh.co.uk/system/{SelectedSystem.Address}") { UseShellExecute = true });        
         }
 
         private async Task OnOpenEDSM()
         {
-            if (selectedSystem == null)
+            if (SelectedSystem == null)
                 return;
 
-            var ret = await edsmApiService.GetSystemUrlAsync(selectedSystem.Address);
+            var ret = await edsmApiService.GetSystemUrlAsync(SelectedSystem.Address);
 
             if (ret != null)
             {
                 Process.Start(new ProcessStartInfo(ret) { UseShellExecute = true });
                 return;
             }
-            _= ODMessageBox.Show(null, "System Not Found", $"EDSM returned no results for address {selectedSystem.Address}");
+            _= ODMessageBox.Show(null, "System Not Found", $"EDSM returned no results for address {SelectedSystem.Address}");
         }
 
         public override void Dispose()
@@ -185,7 +184,8 @@ namespace VoqooePlanner.ViewModels.MainViews
                 Systems.Add(new(system));
             }
 
-            SetSelectedItems(systemAddress, bodyid);
+            if(systemAddress != 0) 
+                SetSelectedItems(systemAddress, bodyid);
             OnPropertyChanged(nameof(Systems));
             OnPropertyChanged(nameof(TotalValue));
             IsLoading = false;
@@ -196,7 +196,7 @@ namespace VoqooePlanner.ViewModels.MainViews
             if (systemAddress == 0)
             {
                 SelectedSystem = systems.FirstOrDefault();
-                SelectedBody = selectedSystem?.Bodies.FirstOrDefault();
+                SelectedBody = SelectedSystem?.Bodies.FirstOrDefault();
                 return;
             }
 

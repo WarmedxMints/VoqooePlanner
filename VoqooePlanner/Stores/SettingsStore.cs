@@ -83,7 +83,7 @@ namespace VoqooePlanner.Stores
 
         private static void ResetWindowPositionActual(WindowPositionViewModel windowPosition)
         {
-            double windowWidth = 1650;
+            double windowWidth = 1700;
             double windowHeight = 900;
 
             double screenWidth = SystemParameters.PrimaryScreenWidth;
